@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Microsoft Ignite 2026 · GSAP Storyboard</title>
+<title>Microsoft Ignite 2026 · Storyboard</title>
 <script>
   (() => {
     const param = new URLSearchParams(window.location.search).get("scoutTheme");
@@ -560,8 +560,7 @@ body { overflow-x: hidden; }
     <span class="wordmark">Microsoft</span>
   </button>
   <span class="vsep"></span>
-  <span class="crumb"><b>Ignite 2026</b> · What's new for your organization</span>
-  <span class="ed" title="This version is driven by GSAP ScrollTrigger">GSAP scroll edition</span>
+  <span class="crumb"><b>Ignite 2026</b> · What's new for your organization</span>
   <span class="chap-ind" id="chapInd"><i></i><span>Prologue</span></span>
   <a class="top-link" href="https://loudy69.github.io/Ignite2026/" title="Open the original click-through version">Classic version</a>
   <a class="top-link" href="https://news.microsoft.com/events/ignite/2026/book-of-news/" target="_blank" rel="noopener">Book of News ↗</a>
@@ -1218,7 +1217,7 @@ window.STORY = [
     const c = D[i];
     chapInd.className = `chap-ind c-${c.color}`;
     chapInd.querySelector('span').textContent = i === 0 ? 'Prologue' : `Chapter ${i} of ${N - 1} · ${c.short}`;
-    document.title = (i === 0 ? '' : c.short + ' · ') + 'Microsoft Ignite 2026 · GSAP Storyboard';
+    document.title = (i === 0 ? '' : c.short + ' · ') + 'Microsoft Ignite 2026 · Storyboard';
     prevBtn.disabled = i === 0; nextBtn.disabled = i === N - 1;
     homeBtn.classList.toggle('on', i === 0);
     nodes.forEach((n, k) => {
