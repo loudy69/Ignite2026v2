@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Ignite 2026 · GSAP Storyboard</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollToPlugin.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef;
+  --cp-bg-elevated: #fcfbf8;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-accent-fg: #ffffff;
+  --cp-success: #16a34a;
+  --cp-danger: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --cp-overlay: rgba(255, 255, 255, 0.8);
+  --cp-panel: rgba(255, 255, 255, 0.86);
+  --cp-panel-strong: rgba(255, 255, 255, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.55);
+  --cp-highlight: rgba(177, 31, 75, 0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a;
+  --cp-bg-elevated: #343231;
+  --cp-surface: #292929;
+  --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-accent-fg: #1a1a1a;
+  --cp-success: #4ade80;
+  --cp-danger: #f87171;
+  --cp-warning: #fbbf24;
+  --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --cp-overlay: rgba(41, 41, 41, 0.88);
+  --cp-panel: rgba(41, 41, 41, 0.72);
+  --cp-panel-strong: rgba(41, 41, 41, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.04);
+  --cp-highlight: rgba(253, 142, 161, 0.12);
+}
+/* Official Microsoft brand palette (explicitly requested by the user) */
+:root {
+  --ms-red: #F25022; --ms-green: #7FBA00; --ms-blue: #00A4EF; --ms-yellow: #FFB900;
+  --ms-gray: #737373; --ms-brand: #0078D4; --ms-wordmark: #737373; --ms-on-brand: #ffffff;
+  --font: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: Consolas, "Courier New", Courier, monospace;
+  --top: 64px; --rail: 124px;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --chap: var(--ms-brand);
+}
+html[data-theme="dark"] { --ms-wordmark: #ffffff; }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { font-family: var(--font); background: var(--cp-bg); color: var(--cp-text); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+a { color: var(--cp-link); }
+
+.c-blue { --chap: var(--ms-blue); } .c-yellow { --chap: var(--ms-yellow); }
+.c-green { --chap: var(--ms-green); } .c-red { --chap: var(--ms-red); } .c-brand { --chap: var(--ms-brand); }
+.chapter, .tile, .node, .card, .stat, .iqcol { --chap-ink: color-mix(in srgb, var(--chap) 70%, var(--cp-text)); }
+
+/* ---------- 3D canvas + veil ---------- */
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+.veil { position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--cp-bg) 0%, color-mix(in srgb, var(--cp-bg) 88%, transparent) 30%, color-mix(in srgb, var(--cp-bg) 30%, transparent) 52%, transparent 66%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cp-bg) 60%, transparent) 0, transparent 14%, transparent 82%, color-mix(in srgb, var(--cp-bg) 80%, transparent) 100%); }
+body.no-gl .veil { background:
+    radial-gradient(40vw 40vw at 78% 30%, color-mix(in srgb, var(--ms-blue) 22%, transparent), transparent 70%),
+    radial-gradient(30vw 30vw at 90% 75%, color-mix(in srgb, var(--ms-yellow) 18%, transparent), transparent 70%),
+    radial-gradient(28vw 28vw at 62% 85%, color-mix(in srgb, var(--ms-green) 16%, transparent), transparent 70%),
+    radial-gradient(26vw 26vw at 70% 10%, color-mix(in srgb, var(--ms-red) 16%, transparent), transparent 70%), var(--cp-bg); }
+
+/* ---------- Top bar ---------- */
+.topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--top); z-index: 30; display: flex; align-items: center; gap: 16px;
+  padding: 0 clamp(16px, 3vw, 32px); background: var(--cp-panel); backdrop-filter: blur(14px) saturate(150%); border-bottom: 1px solid var(--cp-border); }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer; background: none; border: 0; padding: 0; }
+.mslogo .r { fill: var(--ms-red); } .mslogo .g { fill: var(--ms-green); } .mslogo .b { fill: var(--ms-blue); } .mslogo .y { fill: var(--ms-yellow); }
+.wordmark { font-size: 21px; font-weight: 600; letter-spacing: -.01em; color: var(--ms-wordmark); }
+.vsep { width: 1px; height: 26px; background: var(--cp-border); }
+.crumb { font-size: 14px; color: var(--cp-text-muted); white-space: nowrap; }
+.crumb b { color: var(--cp-text); font-weight: 600; }
+.chap-ind { margin-left: auto; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-text-muted);
+  display: flex; align-items: center; gap: 8px; }
+.chap-ind i { width: 10px; height: 10px; border-radius: 3px; background: var(--chap); display: inline-block; transition: background .4s; }
+.top-link { font-size: 13px; font-weight: 600; text-decoration: none; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--cp-border); color: var(--cp-text); background: var(--cp-surface); transition: border-color .2s, transform .2s; }
+.top-link:hover { border-color: var(--ms-brand); transform: translateY(-1px); }
+
+/* ---------- Stage & chapters ---------- */
+#stage { position: fixed; top: var(--top); bottom: var(--rail); left: 0; right: 0; z-index: 5; }
+.chapter { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: clamp(28px, 5vh, 56px) clamp(20px, 5vw, 72px) 72px;
+  opacity: 0; visibility: hidden; transition: opacity .7s var(--ease), visibility 0s linear .7s; scrollbar-width: thin; scrollbar-color: var(--cp-border-strong) transparent; }
+.chapter.active { opacity: 1; visibility: visible; transition: opacity .9s var(--ease) .25s, visibility 0s; }
+.wrap { max-width: 840px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--chap-ink); font-weight: 700; }
+.num { display: inline-grid; place-items: center; min-width: 44px; height: 28px; padding: 0 8px; border-radius: 8px; background: var(--chap); color: var(--cp-text); color: color-mix(in srgb, var(--chap) 12%, black); letter-spacing: .04em; }
+.title { font-size: clamp(38px, 5.6vw, 78px); line-height: .98; letter-spacing: -.035em; font-weight: 800; margin: 16px 0 18px; }
+.title em { font-style: normal; background: linear-gradient(100deg, var(--chap), color-mix(in srgb, var(--chap) 55%, var(--cp-text))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: var(--cp-text-muted); max-width: 680px; margin: 0 0 28px; }
+.lede b { color: var(--cp-text); }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 0 0 30px; }
+.stat { position: relative; padding: 16px 18px; border-radius: 16px; background: var(--cp-panel); border: 1px solid var(--cp-border); backdrop-filter: blur(10px); overflow: hidden; }
+.stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--chap); }
+.stat b { display: block; font-size: clamp(30px, 3.4vw, 44px); font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--chap-ink); font-variant-numeric: tabular-nums; }
+.stat span { display: block; margin-top: 8px; font-size: 13px; line-height: 1.4; color: var(--cp-text-muted); }
+
+/* section headings + cards */
+.sec-h { display: flex; align-items: center; gap: 12px; font-size: 13px; font-family: var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--cp-text-soft); margin: 38px 0 14px; font-weight: 700; }
+.sec-h::before { content: ""; width: 22px; height: 4px; border-radius: 2px; background: var(--chap); }
+.sec-h::after { content: ""; flex: 1; height: 1px; background: var(--cp-border); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 14px; }
+.card { position: relative; padding: 18px 18px 16px; border-radius: 16px; background: var(--cp-panel); border: 1px solid var(--cp-border); backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 0 2px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.14); overflow: hidden; transition: border-color .3s, box-shadow .3s, transform .25s var(--ease); will-change: transform; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--chap), transparent); }
+.card::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--chap) 20%, transparent), transparent 60%); }
+.card:hover { border-color: color-mix(in srgb, var(--chap) 60%, var(--cp-border)); box-shadow: var(--cp-shadow); }
+.card:hover::after { opacity: 1; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.card h4 { margin: 0; font-size: 16px; line-height: 1.3; font-weight: 700; letter-spacing: -.01em; }
+.card p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--cp-text-muted); position: relative; z-index: 1; }
+.card.wide { grid-column: 1 / -1; }
+
+/* status badges */
+.badge { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+  padding: 4px 8px; border-radius: 999px; --bc: var(--ms-gray);
+  background: color-mix(in srgb, var(--bc) 16%, transparent); color: color-mix(in srgb, var(--bc) 65%, var(--cp-text)); border: 1px solid color-mix(in srgb, var(--bc) 40%, transparent); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--bc); }
+.b-ga { --bc: var(--ms-green); } .b-preview { --bc: var(--ms-blue); } .b-frontier { --bc: var(--ms-yellow); } .b-pp { --bc: var(--ms-gray); } .b-roll { --bc: var(--ms-red); }
+
+/* GA timing */
+.ga { position: relative; z-index: 1; display: flex; align-items: center; gap: 9px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--cp-border);
+  font-size: 12.5px; line-height: 1.35; color: var(--cp-text-muted); --gc: var(--ms-gray); }
+.ga i { font-style: normal; flex: none; font-family: var(--mono); font-size: 10.5px; font-weight: 800; letter-spacing: .06em; padding: 3px 7px; border-radius: 6px;
+  color: color-mix(in srgb, var(--gc) 70%, var(--cp-text)); background: color-mix(in srgb, var(--gc) 16%, transparent); border: 1px solid color-mix(in srgb, var(--gc) 45%, transparent); }
+.ga b { color: var(--cp-text); font-weight: 700; }
+.ga-now, .ga-date { --gc: var(--ms-green); }
+.ga-date i { position: relative; }
+.ga-date i::after { content: ""; position: absolute; inset: -1px; border-radius: 6px; border: 2px solid var(--gc); animation: gaPing 2.4s infinite; }
+@keyframes gaPing { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.5, 1.8); } }
+.ga-tbc b { color: var(--cp-text-soft); font-weight: 600; }
+.ga.inline { display: inline-flex; margin: 0; padding: 0; border: 0; }
+.ga-mini { display: block; margin-top: 2px; font-size: 11.5px; color: var(--cp-text-soft); }
+.lg-sep { width: 1px; height: 18px; background: var(--cp-border); margin: 0 6px; }
+
+/* reveal */
+.rv { opacity: 0; translate: 0 26px; }
+.rv.in { animation: rvIn .9s var(--ease) forwards; animation-delay: var(--d, 0ms); }
+@keyframes rvIn { to { opacity: 1; translate: 0 0; } }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; border: 1px solid var(--cp-border); background: var(--cp-surface); color: var(--cp-text); transition: transform .2s var(--ease), box-shadow .2s, border-color .2s; }
+.btn:hover { transform: translateY(-2px); box-shadow: var(--cp-shadow); border-color: var(--ms-brand); }
+.btn.primary { background: var(--ms-brand); border-color: var(--ms-brand); color: var(--ms-on-brand); position: relative; overflow: hidden; }
+.btn.primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); translate: -120% 0; animation: shine 3.2s 2s infinite; }
+@keyframes shine { 0%, 60% { translate: -120% 0; } 100% { translate: 120% 0; } }
+.next-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 44px; }
+.src { font-size: 12.5px; color: var(--cp-text-soft); margin-top: 18px; }
+
+/* ---------- Home ---------- */
+.home .wrap { max-width: 900px; }
+.hero { font-size: clamp(64px, 10.5vw, 168px); line-height: .86; letter-spacing: -.055em; font-weight: 800; margin: 18px 0 22px; }
+.hero .yr { background: linear-gradient(90deg, var(--ms-red), var(--ms-yellow), var(--ms-green), var(--ms-blue), var(--ms-red)); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: flow 6s linear infinite; }
+@keyframes flow { to { background-position: 200% 0; } }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tile { position: relative; text-align: left; cursor: pointer; padding: 16px 16px 14px; border-radius: 16px; border: 1px solid var(--cp-border); background: var(--cp-panel); backdrop-filter: blur(12px);
+  overflow: hidden; transition: transform .3s var(--ease), border-color .3s, box-shadow .3s; }
+.tile::before { content: ""; position: absolute; inset: auto 0 0 0; height: 4px; background: var(--chap); transform: scaleX(.18); transform-origin: left; transition: transform .45s var(--ease); }
+.tile:hover { transform: translateY(-4px); border-color: var(--chap); box-shadow: var(--cp-shadow); }
+.tile:hover::before { transform: scaleX(1); }
+.tile .tn { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--chap-ink); letter-spacing: .1em; }
+.tile .tt { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.02em; margin: 6px 0 4px; }
+.tile .td { display: block; font-size: 13px; color: var(--cp-text-muted); line-height: 1.45; }
+.tile .ta { position: absolute; right: 14px; top: 14px; color: var(--chap-ink); transition: translate .3s var(--ease); }
+.tile:hover .ta { translate: 4px 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 26px; font-size: 13px; color: var(--cp-text-muted); }
+.ticker { margin: 40px calc(-1 * clamp(20px, 5vw, 72px)) 0; overflow: hidden; border-block: 1px solid var(--cp-border); background: var(--cp-panel); padding: 14px 0;
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+.tick-inner { display: flex; gap: 36px; width: max-content; animation: marquee 55s linear infinite; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.tick-inner span { display: inline-flex; align-items: center; gap: 36px; }
+.tick-inner span::after { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--c, var(--ms-blue)); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ---------- Visuals ---------- */
+.visual { margin: 0 0 8px; padding: 22px; border-radius: 16px; border: 1px solid var(--cp-border); background: var(--cp-panel); backdrop-filter: blur(12px); position: relative; overflow: hidden; }
+.vis-cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-text-soft); margin-bottom: 14px; font-weight: 700; }
+/* flow (core) */
+.flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; position: relative; }
+.flow::before { content: ""; position: absolute; left: 6%; right: 6%; top: 22px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--ms-blue), var(--ms-brand), var(--ms-green), var(--ms-yellow), var(--ms-red)); background-size: 200% 100%; animation: flow 4s linear infinite; opacity: .8; }
+.fstep { position: relative; text-align: center; }
+.fstep .dot { width: 46px; height: 46px; margin: 0 auto 10px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-family: var(--mono);
+  background: var(--cp-surface); border: 2px solid var(--fc); color: var(--fc); position: relative; animation: bob 3s ease-in-out infinite; animation-delay: calc(var(--k) * .25s); }
+@keyframes bob { 50% { translate: 0 -5px; box-shadow: 0 8px 22px color-mix(in srgb, var(--fc) 40%, transparent); } }
+.fstep b { display: block; font-size: 14px; } .fstep small { display: block; font-size: 12px; color: var(--cp-text-muted); line-height: 1.4; margin-top: 4px; }
+/* bars (models) */
+.feature { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; align-items: center; }
+.feature h3 { margin: 4px 0 8px; font-size: 26px; letter-spacing: -.02em; }
+.feature p { margin: 0 0 12px; font-size: 14px; line-height: 1.55; color: var(--cp-text-muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.chip { font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--chap) 45%, var(--cp-border)); background: color-mix(in srgb, var(--chap) 10%, transparent); }
+.bars { display: grid; gap: 14px; }
+.bar-l { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.bar-t { height: 16px; border-radius: 8px; background: var(--cp-surface-soft); overflow: hidden; border: 1px solid var(--cp-border); }
+.bar-f { height: 100%; width: 0; border-radius: 8px; background: linear-gradient(90deg, var(--fc), color-mix(in srgb, var(--fc) 60%, white)); transition: width 1.6s var(--ease) .4s; }
+.visual.in .bar-f { width: var(--w); }
+.speed { margin-top: 6px; display: inline-flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--cp-text-muted); }
+.speed b { font-size: 34px; letter-spacing: -.03em; color: var(--chap-ink, var(--cp-text)); }
+/* handoff (copilot) */
+.handoff { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+.pane { border-radius: 14px; border: 1px solid var(--cp-border); background: var(--cp-surface); padding: 14px; min-height: 120px; }
+.pane h5 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; } .pane h5 i { width: 10px; height: 10px; border-radius: 3px; background: var(--pc); }
+.ln { height: 8px; border-radius: 4px; background: var(--cp-surface-soft); margin: 7px 0; border: 1px solid var(--cp-border); }
+.ln.hl { background: color-mix(in srgb, var(--pc) 35%, transparent); border-color: transparent; animation: pulseW 3s ease-in-out infinite; }
+@keyframes pulseW { 50% { width: 60%; } }
+.auto { position: relative; width: 120px; height: 46px; border-radius: 999px; display: grid; place-items: center; font-weight: 800; font-size: 13px; letter-spacing: .1em;
+  background: conic-gradient(from var(--ang, 0deg), var(--ms-red), var(--ms-green), var(--ms-blue), var(--ms-yellow), var(--ms-red)); padding: 2px; animation: spin 4s linear infinite; }
+.auto span { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 999px; background: var(--cp-surface); }
+@property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes spin { to { --ang: 360deg; } }
+.auto::after { content: ""; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--ms-green); top: 50%; left: -60px; margin-top: -5px; animation: hop 2.6s var(--ease) infinite; box-shadow: 0 0 12px var(--ms-green); }
+@keyframes hop { 0% { left: -60px; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 170px; opacity: 0; } }
+/* IQ quad + loop */
+.iqviz { display: grid; grid-template-columns: 1fr 260px; gap: 22px; align-items: center; }
+.quad { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.q { border-radius: 12px; padding: 14px; background: color-mix(in srgb, var(--chap) 14%, var(--cp-surface)); border: 1px solid color-mix(in srgb, var(--chap) 45%, transparent); transition: transform .3s var(--ease); }
+.q:hover { transform: scale(1.03); }
+.q b { display: block; font-size: 17px; letter-spacing: -.01em; } .q small { font-size: 12px; color: var(--cp-text-muted); line-height: 1.4; display: block; margin-top: 4px; }
+.loop { position: relative; width: 250px; height: 250px; margin: auto; }
+.loop .ring { position: absolute; inset: 34px; border-radius: 50%; border: 3px dashed var(--cp-border-strong); animation: rot 24s linear infinite; }
+.loop .core { position: absolute; inset: 82px; border-radius: 50%; display: grid; place-items: center; text-align: center; font-size: 12px; font-weight: 800; line-height: 1.2;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ms-red) 30%, var(--cp-surface)), var(--cp-surface)); border: 1px solid var(--cp-border); }
+.loop .st { position: absolute; left: 50%; top: 50%; width: 74px; margin: -13px 0 0 -37px; text-align: center; font-size: 11px; font-weight: 700; padding: 5px 0; border-radius: 999px;
+  background: var(--cp-surface); border: 1px solid var(--lc); transform: rotate(calc(var(--k) * 60deg)) translateY(-100px) rotate(calc(var(--k) * -60deg)); animation: glow 6s infinite; animation-delay: calc(var(--k) * 1s); }
+@keyframes glow { 0%, 20% { background: color-mix(in srgb, var(--lc) 35%, var(--cp-surface)); } 30%, 100% { background: var(--cp-surface); } }
+@keyframes rot { to { transform: rotate(360deg); } }
+.iqcol ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.iqcol li { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; font-size: 13.5px; line-height: 1.45; color: var(--cp-text-muted); padding-top: 8px; border-top: 1px dashed var(--cp-border); }
+.iqcol li:first-child { border-top: 0; padding-top: 0; }
+/* gauge (agent 365) */
+.risk { display: grid; grid-template-columns: 1fr 230px; gap: 22px; align-items: center; }
+.sigs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sig { padding: 10px; border-radius: 10px; border: 1px solid var(--cp-border); background: var(--cp-surface); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; position: relative; overflow: hidden; }
+.sig i { width: 8px; height: 8px; border-radius: 50%; background: var(--ms-blue); animation: ping 2s infinite; animation-delay: calc(var(--k) * .3s); }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ms-blue) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.fuse { margin-top: 10px; text-align: center; font-size: 12px; color: var(--cp-text-muted); font-family: var(--mono); letter-spacing: .1em; }
+.fuse b { color: var(--cp-text); }
+.gauge svg { width: 100%; height: auto; overflow: visible; }
+.gauge .needle { transform-origin: 110px 110px; transform-box: view-box; animation: needle 5s ease-in-out infinite; }
+@keyframes needle { 0% { transform: rotate(-62deg); } 35% { transform: rotate(8deg); } 55% { transform: rotate(-20deg); } 75% { transform: rotate(48deg); } 100% { transform: rotate(-62deg); } }
+.gauge text { font-family: var(--font); font-size: 11px; font-weight: 700; fill: var(--cp-text-muted); }
+/* layers (entra) */
+.layer { border-radius: 14px; padding: 12px 12px 12px; border: 1.5px solid color-mix(in srgb, var(--ms-yellow) 55%, var(--cp-border)); background: color-mix(in srgb, var(--ms-yellow) 6%, transparent); position: relative; }
+.layer > span { display: block; font-size: 12px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--cp-text-muted); margin-bottom: 10px; }
+.layer.core { text-align: center; padding: 18px; background: var(--ms-yellow); color: color-mix(in srgb, var(--ms-yellow) 10%, black); border: 0; animation: corePulse 2.4s ease-in-out infinite; }
+.layer.core b { font-size: 18px; letter-spacing: -.01em; } .layer.core small { display: block; font-size: 12px; margin-top: 2px; }
+@keyframes corePulse { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--ms-yellow) 25%, transparent), 0 0 40px color-mix(in srgb, var(--ms-yellow) 50%, transparent); } }
+/* teams (perception) */
+.teams { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.team { border-radius: 14px; padding: 14px; background: color-mix(in srgb, var(--tc) 10%, var(--cp-surface)); border: 1px solid color-mix(in srgb, var(--tc) 50%, transparent); }
+.team h5 { margin: 0 0 6px; font-size: 16px; display: flex; align-items: center; gap: 8px; } .team h5 i { width: 12px; height: 12px; border-radius: 3px; background: var(--tc); }
+.team p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--cp-text-muted); }
+.pbar { margin-top: 10px; border-radius: 12px; padding: 12px 16px; font-weight: 800; letter-spacing: .02em; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, var(--ms-red), var(--ms-blue), var(--ms-green)); background-size: 200% 100%; animation: flow 5s linear infinite; color: var(--ms-on-brand); }
+.pbar small { font-weight: 600; opacity: .9; }
+.finale { margin-top: 44px; padding: 30px; border-radius: 16px; text-align: center; position: relative; overflow: hidden; border: 1px solid var(--cp-border); background: var(--cp-panel); }
+.finale::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, var(--ms-red) 25%, var(--ms-green) 0 50%, var(--ms-blue) 0 75%, var(--ms-yellow) 0); }
+.finale h3 { font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; margin: 8px 0 8px; }
+.finale p { color: var(--cp-text-muted); margin: 0 auto 20px; max-width: 520px; line-height: 1.55; }
+.finale .cta { justify-content: center; margin: 0; }
+/* "What it means for you" callout */
+.you { margin: 22px 0 6px; padding: 18px 20px 16px; border-radius: 16px; position: relative; overflow: hidden;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--chap) 14%, var(--cp-surface)), var(--cp-surface) 70%); border: 1px solid color-mix(in srgb, var(--chap) 40%, var(--cp-border)); }
+.you::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--chap); }
+.you ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; }
+.you li { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; line-height: 1.45; color: var(--cp-text); }
+.you li::before { content: "✓"; flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 800;
+  background: var(--chap); color: color-mix(in srgb, var(--chap) 10%, black); margin-top: 1px; }
+.prompt { display: block; margin-top: 8px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.4; font-style: italic;
+  background: color-mix(in srgb, var(--chap) 10%, transparent); border: 1px solid color-mix(in srgb, var(--chap) 35%, transparent); }
+/* pillars (overview) */
+.pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; }
+.pil { display: flex; flex-direction: column; gap: 8px; }
+.pil-cap { border-radius: 12px 12px 4px 4px; padding: 12px 14px; background: var(--pc); color: color-mix(in srgb, var(--pc) 10%, black); }
+.pil-cap b { display: block; font-size: 18px; letter-spacing: -.01em; } .pil-cap small { display: block; font-size: 12px; font-weight: 600; opacity: .85; margin-top: 2px; }
+.pil-col { display: grid; gap: 6px; padding: 10px; border-radius: 4px; min-height: 150px; align-content: start;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pc) 16%, var(--cp-surface)), color-mix(in srgb, var(--pc) 4%, var(--cp-surface)));
+  border: 1px solid color-mix(in srgb, var(--pc) 40%, transparent); transform: scaleY(0); transform-origin: bottom; transition: transform 1.1s var(--ease); transition-delay: calc(.3s + var(--k) * .18s); }
+.visual.in .pil-col { transform: scaleY(1); }
+.pil-it { text-align: left; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--cp-border); background: var(--cp-surface); display: flex; justify-content: space-between; gap: 8px; transition: transform .2s var(--ease), border-color .2s; }
+.pil-it::after { content: "→"; color: var(--pc); }
+.pil-it:hover { transform: translateX(3px); border-color: var(--pc); }
+.found { margin-top: 10px; border-radius: 10px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; font-weight: 600;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ms-yellow) 30%, var(--cp-surface)), color-mix(in srgb, var(--ms-yellow) 10%, var(--cp-surface))); border: 1px solid color-mix(in srgb, var(--ms-yellow) 55%, transparent); }
+.found span { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-text-muted); margin-right: auto; }
+.found button { padding: 4px 10px; border-radius: 999px; border: 0; cursor: pointer; font: inherit; font-size: 12.5px; background: var(--ms-yellow); color: color-mix(in srgb, var(--ms-yellow) 10%, black); transition: transform .2s; }
+.found button:hover, .found button:focus-visible { transform: translateY(-2px); }
+/* priorities picker */
+.convo { display: grid; grid-template-columns: 270px 1fr; gap: 16px; align-items: start; }
+.cv-g { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-text-soft); margin: 2px 0 6px; display: flex; align-items: center; gap: 8px; }
+.cv-g i { width: 10px; height: 10px; border-radius: 3px; background: var(--gc); }
+.cv-g + .cv-btn { margin-top: 0; }
+.cv-btn { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; margin-bottom: 6px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--cp-border); background: var(--cp-surface); font-size: 13px; font-weight: 600; line-height: 1.3; transition: border-color .2s, background .2s, transform .2s var(--ease); }
+.cv-btn:hover { transform: translateX(3px); border-color: var(--gc); }
+.cv-btn em { font-style: normal; flex: none; font-family: var(--mono); font-size: 11px; font-weight: 700; min-width: 24px; text-align: center; padding: 2px 6px; border-radius: 999px; background: color-mix(in srgb, var(--gc) 20%, transparent); }
+.cv-btn.on { border-color: var(--gc); background: color-mix(in srgb, var(--gc) 16%, var(--cp-surface)); box-shadow: inset 4px 0 0 var(--gc); }
+.cv-list .cv-g:not(:first-child) { margin-top: 12px; }
+.cv-panel { border-radius: 14px; padding: 18px; background: var(--cp-surface); border: 1px solid var(--cp-border); min-height: 100%; position: relative; overflow: hidden; }
+.cv-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--gc); }
+.cv-panel h4 { margin: 4px 0 4px; font-size: 22px; letter-spacing: -.02em; line-height: 1.2; }
+.cv-panel .cv-sub { font-size: 13px; color: var(--cp-text-muted); margin-bottom: 14px; }
+.cv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-chip { cursor: pointer; font-size: 13px; padding: 7px 12px; display: inline-flex; align-items: center; gap: 6px; animation: chipIn .5s var(--ease) both; animation-delay: calc(var(--k) * 45ms); transition: transform .2s var(--ease), background .2s; }
+.cv-chip:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--chap) 22%, transparent); }
+.cv-chip i { font-style: normal; font-family: var(--mono); font-size: 10.5px; opacity: .7; }
+@keyframes chipIn { from { opacity: 0; transform: translateY(8px) scale(.94); } }
+.cv-bars { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+/* timeline (activate) */
+.tl { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding-top: 6px; }
+.tl::before { content: ""; position: absolute; left: 4%; right: 4%; top: 27px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--ms-red), var(--ms-green), var(--ms-blue), var(--ms-yellow));
+  transform: scaleX(0); transform-origin: left; transition: transform 1.8s var(--ease) .3s; }
+.visual.in .tl::before { transform: scaleX(1); }
+.tl-s { text-align: center; position: relative; }
+.tl-s .tl-d { width: 46px; height: 46px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: var(--cp-surface); border: 3px solid var(--tc); font-weight: 800; font-family: var(--mono); font-size: 13px;
+  transform: scale(0); transition: transform .6s var(--ease); transition-delay: calc(.5s + var(--k) * .3s); position: relative; z-index: 1; }
+.visual.in .tl-s .tl-d { transform: scale(1); }
+.tl-s .tl-d::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--tc); animation: tlPing 2.6s infinite; animation-delay: calc(var(--k) * .5s); }
+@keyframes tlPing { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.6); } }
+.tl-s time { display: block; font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .06em; color: var(--cp-text-soft); }
+.tl-s b { display: block; font-size: 14px; margin: 3px 0 2px; } .tl-s small { display: block; font-size: 12px; line-height: 1.4; color: var(--cp-text-muted); }
+.step-n { font-family: var(--mono); font-size: 12px; font-weight: 800; color: var(--chap-ink); margin-right: 6px; }
+/* road to GA */
+.road { display: grid; grid-template-columns: 1.15fr 1.05fr .9fr 1.1fr; gap: 12px; position: relative; }
+.lane { position: relative; padding: 14px 12px 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--lc) 40%, var(--cp-border));
+  background: linear-gradient(165deg, color-mix(in srgb, var(--lc) 14%, transparent), transparent 70%);
+  opacity: 0; translate: 0 18px; transition: opacity .6s var(--ease), translate .6s var(--ease); transition-delay: calc(.4s + var(--k) * .18s); }
+.visual.in .lane { opacity: 1; translate: 0 0; }
+.lane:not(:last-child)::after { content: "→"; position: absolute; right: -13px; top: 18px; z-index: 2; width: 14px; text-align: center; font-weight: 800; color: var(--cp-text-soft); }
+.ln-l { font-family: var(--mono); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--lc) 70%, var(--cp-text)); }
+.lane h5 { margin: 2px 0 0; font-size: 16px; font-weight: 700; }
+.lane ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 7px; }
+.rd-i { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 10px;
+  background: var(--cp-panel); border: 1px solid var(--cp-border); transition: border-color .25s, transform .25s var(--ease); }
+.rd-i:hover, .rd-i:focus-visible { border-color: var(--lc); transform: translateX(3px); }
+.rd-i:focus-visible { outline: 2px solid var(--lc); outline-offset: 2px; }
+.rd-i b { display: block; font-size: 13px; line-height: 1.3; } .rd-i small { display: block; font-size: 11.5px; line-height: 1.35; color: var(--cp-text-muted); margin-top: 2px; }
+.rd-t { flex: none; font-style: normal; font-family: var(--mono); font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 2px 6px; border-radius: 6px; white-space: nowrap; --tc2: var(--ms-gray);
+  color: color-mix(in srgb, var(--tc2) 70%, var(--cp-text)); background: color-mix(in srgb, var(--tc2) 16%, transparent); border: 1px solid color-mix(in srgb, var(--tc2) 40%, transparent); }
+.rd-ga { --tc2: var(--ms-green); } .rd-pv { --tc2: var(--ms-blue); } .rd-tbc { --tc2: var(--ms-gray); }
+.rd-note { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--cp-text-soft); }
+.phases { display: grid; grid-template-columns: 1fr 1.25fr .9fr; gap: 12px; }
+.phase { position: relative; padding: 16px 16px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--pc) 40%, var(--cp-border)); background: linear-gradient(160deg, color-mix(in srgb, var(--pc) 14%, transparent), transparent 70%);
+  opacity: 0; translate: 0 14px; transition: opacity .6s var(--ease), translate .6s var(--ease); transition-delay: calc(1.4s + var(--k) * .2s); }
+.visual.in .phase { opacity: 1; translate: 0 0; }
+.phase:not(:last-child)::after { content: "→"; position: absolute; right: -11px; top: 50%; translate: 0 -50%; font-weight: 800; color: var(--pc); z-index: 1; }
+.phase .ph-l { font-family: var(--mono); font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--pc); }
+.phase h5 { margin: 4px 0 10px; font-size: 15px; }
+.ph-steps { display: flex; flex-direction: column; gap: 6px; }
+.ph-step { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--cp-border); background: var(--cp-surface); color: inherit; font: inherit; font-size: 13px; cursor: pointer; transition: border-color .2s, transform .2s; }
+.ph-step:hover, .ph-step:focus-visible { border-color: var(--pc); transform: translateX(3px); }
+.ph-step i { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-family: var(--mono); font-size: 11px; font-weight: 800; background: var(--pc); color: #fff; }
+.card.rv.in.flash { animation: rvIn .9s var(--ease) forwards, cardFlash 1.8s var(--ease) .2s; }
+@keyframes cardFlash { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 3px var(--chap), 0 0 36px color-mix(in srgb, var(--chap) 45%, transparent); } }
+.mail { display: flex; gap: 12px; align-items: flex-start; }
+.mail .env { flex: none; width: 44px; height: 32px; border-radius: 5px; position: relative; background: color-mix(in srgb, var(--chap) 22%, var(--cp-surface)); border: 1.5px solid var(--chap); overflow: hidden; }
+.mail .env::before { content: ""; position: absolute; inset: 0; background: var(--chap); clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 9%, 50% 67%, 0 9%); }
+.mail .to { display: block; font-family: var(--mono); font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--chap-ink); }
+
+/* ---------- Storyline rail ---------- */
+.rail { position: fixed; left: 0; right: 0; bottom: 0; height: var(--rail); z-index: 30; display: flex; align-items: stretch; gap: 12px; padding: 10px clamp(12px, 2.4vw, 28px) 8px;
+  background: var(--cp-panel-strong); backdrop-filter: blur(16px); border-top: 1px solid var(--cp-border); }
+.rail::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 4px;
+  background: linear-gradient(90deg, var(--ms-red) 25%, var(--ms-green) 0 50%, var(--ms-blue) 0 75%, var(--ms-yellow) 0); }
+.home-btn { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 14px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--cp-border); background: var(--cp-surface); font-size: 12px; font-weight: 700; transition: transform .2s var(--ease), border-color .2s, box-shadow .2s; }
+.home-btn svg { width: 22px; height: 22px; stroke: var(--ms-brand); }
+.home-btn:hover { transform: translateY(-2px); border-color: var(--ms-brand); box-shadow: var(--cp-shadow); }
+.home-btn.on { border-color: var(--ms-brand); background: color-mix(in srgb, var(--ms-brand) 10%, var(--cp-surface)); }
+.track { position: relative; flex: 1; min-width: 0; }
+.track svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.path-base { fill: none; stroke: var(--cp-border-strong); stroke-width: 2; stroke-dasharray: 2 7; stroke-linecap: round; opacity: .8; }
+.path-prog { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1.6s var(--ease); }
+.comet { fill: var(--cp-text); }
+.comet-glow { opacity: .5; }
+.node { position: absolute; width: 0; height: 0; border: 0; padding: 0; background: none; cursor: pointer; }
+.node .dot { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--chap); background: var(--cp-surface);
+  transition: transform .4s var(--ease), background .4s, box-shadow .4s; display: grid; place-items: center; }
+.node.visited .dot { background: color-mix(in srgb, var(--chap) 55%, var(--cp-surface)); }
+.node.active .dot { background: var(--chap); transform: scale(1.35); animation: nodePulse 1.8s infinite; }
+@keyframes nodePulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--chap) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+.node:hover .dot { transform: scale(1.3); }
+.node.homenode .dot { border: 0; background: none; border-radius: 4px; }
+.node.homenode .dot svg { width: 22px; height: 22px; }
+.node.homenode.active .dot { background: none; box-shadow: none; animation: none; transform: scale(1.35); }
+.node .lbl { position: absolute; top: 20px; left: 0; translate: -50% 0; white-space: nowrap; text-align: center; font-size: 12.5px; font-weight: 600; color: var(--cp-text-muted); transition: color .3s; line-height: 1.2; }
+.node .lbl small { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--chap-ink); font-weight: 700; letter-spacing: .06em; }
+.node.active .lbl { color: var(--cp-text); font-weight: 800; }
+.node:focus-visible .dot, .btn:focus-visible, .tile:focus-visible, .home-btn:focus-visible, .arrow:focus-visible { outline: 3px solid var(--ms-brand); outline-offset: 3px; }
+.arrows { display: flex; align-items: center; gap: 8px; }
+.arrow { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--cp-border); background: var(--cp-surface); cursor: pointer; font-size: 18px; font-weight: 700; transition: transform .2s, border-color .2s, opacity .2s; }
+.arrow:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--ms-brand); }
+.arrow:disabled { opacity: .35; cursor: default; }
+.kbd { font-family: var(--mono); font-size: 10.5px; color: var(--cp-text-soft); text-align: center; margin-top: 4px; }
+
+/* ---------- Intro ---------- */
+.intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--cp-bg); cursor: pointer; transition: opacity .8s var(--ease), visibility 0s linear .8s; }
+.intro.done { opacity: 0; visibility: hidden; }
+.intro-in { display: grid; justify-items: center; gap: 22px; }
+.isq { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 120px; height: 120px; }
+.isq i { display: block; transform: scale(0) rotate(-90deg); animation: sqIn .7s var(--ease) forwards; }
+.isq i:nth-child(1) { background: var(--ms-red); } .isq i:nth-child(2) { background: var(--ms-green); animation-delay: .1s; }
+.isq i:nth-child(3) { background: var(--ms-blue); animation-delay: .2s; } .isq i:nth-child(4) { background: var(--ms-yellow); animation-delay: .3s; }
+@keyframes sqIn { to { transform: scale(1) rotate(0); } }
+.intro-t { font-size: clamp(24px, 3vw, 36px); font-weight: 300; letter-spacing: -.01em; opacity: 0; animation: fadeUp .8s var(--ease) .55s forwards; translate: 0 10px; }
+.intro-t b { font-weight: 700; }
+@keyframes fadeUp { to { opacity: 1; translate: 0 0; } }
+
+
+/* ================= GSAP ScrollTrigger edition ================= */
+:root { --px: clamp(20px, 5vw, 72px); }
+html, body { height: auto; overflow: visible; }
+html { overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--cp-border-strong) transparent; }
+body { overflow-x: hidden; }
+#stage { position: relative; inset: auto; z-index: 5; padding-bottom: var(--rail); }
+.chapter { position: relative; inset: auto; overflow: visible; opacity: 1; visibility: visible; transition: none; padding: 0 var(--px) 14vh; }
+.rv, .rv.in { opacity: 1; translate: none; animation: none; }
+.card.rv.in.flash { animation: cardFlash 1.8s var(--ease) .2s; }
+.path-prog { transition: none; }
+.ed { font-family: var(--mono); font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: var(--ms-on-brand); background: var(--ms-brand); white-space: nowrap; }
+
+/* scroll progress */
+.sprog { position: fixed; left: 0; right: 0; top: var(--top); height: 3px; z-index: 31; pointer-events: none; }
+.sprog i { display: block; height: 100%; transform-origin: 0 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, var(--ms-red) 0 25%, var(--ms-green) 0 50%, var(--ms-blue) 0 75%, var(--ms-yellow) 0); }
+
+/* scroll cue */
+.cue { margin-top: 28px; display: inline-flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--cp-text-soft); }
+.cue i { width: 22px; height: 34px; border: 2px solid var(--cp-border-strong); border-radius: 12px; position: relative; flex: none; }
+.cue i::after { content: ""; position: absolute; left: 50%; top: 6px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: var(--chap); animation: cueDot 1.6s infinite; }
+@keyframes cueDot { 0% { opacity: 0; translate: 0 0; } 30% { opacity: 1; } 100% { opacity: 0; translate: 0 12px; } }
+
+/* home hero + horizontal gallery */
+.home .hero-wrap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--top) + 3vh) 0 calc(var(--rail) + 3vh); }
+.hero { perspective: 900px; }
+.hero .hw, .hero .ch, .hero .yr { display: inline-block; }
+.hero-wrap .cta { margin-bottom: 0; }
+.hgal { position: relative; height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 26px; margin: 0 calc(-1 * var(--px)); padding: calc(var(--top) + 2vh) 0 calc(var(--rail) + 2vh); overflow: hidden; }
+.hgal-cap { padding: 0 var(--px); }
+.hgal-cap h3 { font-size: clamp(30px, 3.6vw, 52px); line-height: 1; margin: 8px 0 0; letter-spacing: -.035em; font-weight: 800; }
+.htrack { display: flex; gap: 18px; width: max-content; padding: 0 var(--px); }
+.htrack .tile { width: clamp(250px, 24vw, 330px); min-height: clamp(220px, 36vh, 330px); flex: none; display: flex; flex-direction: column; justify-content: flex-end; padding: 22px 22px 20px; }
+.htrack .tile .tn { position: absolute; left: 22px; top: 18px; font-size: clamp(56px, 6vw, 88px); line-height: 1; letter-spacing: -.04em; font-family: var(--font); font-weight: 900; color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--chap) 70%, transparent); }
+.htrack .tile .tt { font-size: 24px; }
+.hgal-bar { margin: 0 var(--px); height: 3px; border-radius: 2px; background: var(--cp-border); overflow: hidden; }
+.hgal-bar i { display: block; height: 100%; background: var(--ms-brand); transform-origin: 0 50%; transform: scaleX(0); }
+
+/* chapter title plates */
+.ch-head { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--top) + 4vh) 0 calc(var(--rail) + 3vh); isolation: isolate; }
+.ch-big { position: absolute; left: -1vw; top: 50%; margin-top: -.42em; z-index: -1; font-size: clamp(200px, 36vw, 560px); font-weight: 900; letter-spacing: -.07em; line-height: .84;
+  color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--chap) 45%, transparent); pointer-events: none; user-select: none; transform-origin: 30% 50%; }
+.ch-big span { display: inline-block; }
+.ch-head .title { font-size: clamp(44px, 6.6vw, 100px); }
+.title .w { display: inline-block; }
+.title em { background: none; color: inherit; }
+.title em .w { background: linear-gradient(100deg, var(--chap), color-mix(in srgb, var(--chap) 55%, var(--cp-text))); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .06em; }
+.sec-h::after { transform: scaleX(var(--ln, 1)); transform-origin: 0 50%; }
+.intro { clip-path: circle(80% at 50% 50%); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .veil { background: color-mix(in srgb, var(--cp-bg) 72%, transparent); }
+  .crumb, .vsep, .top-link { display: none; }
+  .feature, .iqviz, .risk { grid-template-columns: 1fr; }
+  .flow { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; } .fstep small { display: none; }
+  .teams { grid-template-columns: 1fr; }
+  .convo, .cv-bars { grid-template-columns: 1fr; }
+  .pillars { grid-template-columns: 1fr; } .pil-col { min-height: 0; }
+  .you ul { grid-template-columns: 1fr; }
+  .phases { grid-template-columns: 1fr; } .phase:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -15px; translate: 50% 0; }
+  .road { grid-template-columns: 1fr; } .lane:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -15px; translate: 50% 0; }
+  .tl { grid-template-columns: 1fr; text-align: left; } .tl::before { display: none; } .tl-s { display: grid; grid-template-columns: 46px 1fr; gap: 0 12px; text-align: left; } .tl-s .tl-d { grid-row: span 3; margin: 0; }
+  .conf { display: none; }
+  .node .lbl { display: none; } .node.active .lbl { display: block; }
+  .kbd { display: none; }
+}
+@media (max-width: 560px) {
+  .handoff { grid-template-columns: 1fr; justify-items: center; } .handoff .pane { width: 100%; }
+  .sigs { grid-template-columns: repeat(2, 1fr); }
+  .arrows { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .rv { opacity: 1; translate: none; }
+}
+
+@media (max-width: 900px) {
+  .hgal { height: auto; overflow: visible; margin: 0; padding: 8vh 0; }
+  .hgal-cap, .hgal-bar { padding: 0; margin: 0; } .hgal-bar { display: none; }
+  .htrack { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); width: auto; padding: 0; gap: 12px; }
+  .htrack .tile { width: auto; min-height: 150px; }
+  .htrack .tile .tn { font-size: 46px; }
+  .ch-big { font-size: 62vw; left: -4vw; }
+  .ed { display: none; }
+}
+</style>
+</head>
+
+<body class="no-gl">
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="veil"></div>
+
+<div class="intro" id="intro" role="presentation">
+  <div class="intro-in">
+    <div class="isq"><i></i><i></i><i></i><i></i></div>
+    <div class="intro-t">Microsoft <b>Ignite 2026</b></div>
+  </div>
+</div>
+
+<header class="topbar">
+  <button class="brand" data-go="0" aria-label="Microsoft, back to the start">
+    <svg class="mslogo" width="23" height="23" viewBox="0 0 23 23" aria-hidden="true"><rect class="r" x="1" y="1" width="10" height="10"/><rect class="g" x="12" y="1" width="10" height="10"/><rect class="b" x="1" y="12" width="10" height="10"/><rect class="y" x="12" y="12" width="10" height="10"/></svg>
+    <span class="wordmark">Microsoft</span>
+  </button>
+  <span class="vsep"></span>
+  <span class="crumb"><b>Ignite 2026</b> · What's new for your organization</span>
+  <span class="ed" title="This version is driven by GSAP ScrollTrigger">GSAP scroll edition</span>
+  <span class="chap-ind" id="chapInd"><i></i><span>Prologue</span></span>
+  <a class="top-link" href="https://loudy69.github.io/Ignite2026/" title="Open the original click-through version">Classic version</a>
+  <a class="top-link" href="https://news.microsoft.com/events/ignite/2026/book-of-news/" target="_blank" rel="noopener">Book of News ↗</a>
+</header>
+
+<div class="sprog" aria-hidden="true"><i></i></div>
+
+<main id="stage"></main>
+
+<nav class="rail" aria-label="Storyline">
+  <button class="home-btn" data-go="0" aria-label="Home: return to the start">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+    Home
+  </button>
+  <div class="track" id="track">
+    <svg id="storySvg" aria-hidden="true">
+      <defs><linearGradient id="progGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="0">
+        <stop offset="0" style="stop-color:var(--ms-red)"/><stop offset=".33" style="stop-color:var(--ms-green)"/>
+        <stop offset=".66" style="stop-color:var(--ms-blue)"/><stop offset="1" style="stop-color:var(--ms-yellow)"/>
+      </linearGradient></defs>
+      <path class="path-base" id="pathBase"/>
+      <path class="path-prog" id="pathProg" stroke="url(#progGrad)"/>
+      <circle class="comet-glow" id="cometGlow" r="9" fill="url(#progGrad)"/>
+      <circle class="comet" id="comet" r="3.5"/>
+    </svg>
+  </div>
+  <div>
+    <div class="arrows">
+      <button class="arrow" id="prevBtn" aria-label="Previous chapter">←</button>
+      <button class="arrow" id="nextBtn" aria-label="Next chapter">→</button>
+    </div>
+    <div class="kbd">scroll · ← →</div>
+  </div>
+</nav>
+
+<script>
+/* Customer-facing storyboard. Product content is sourced from the public Microsoft Ignite 2026 Book of News. */
+window.STORY = [
+{ id:'home', short:'Home', color:'brand' },
+
+{ id:'pillars', num:'Overview', short:'Big Picture', color:'brand', tag:'AI in your work, your context and your trust',
+  kicker:'The big picture · Ignite 2026',
+  title:'Your work, your context, <em>your trust.</em>',
+  lede:'Ignite 2026 is about putting agents to work safely. <b>AI in your work</b> brings Copilot and agents into everyday tasks. <b>AI grounded in your context</b> connects them to your data and the right models. <b>AI you can trust</b> keeps every agent identified, governed and defended. Azure is the foundation underneath.',
+  stats:[{n:3,l:'themes: your work, your context, your trust'},{n:9,l:'headline announcements to start with'},{n:7,l:'announcement chapters to explore'}],
+  visual:'pillars',
+  pillars:[
+   {c:'green', t:'AI in your work', s:'Copilot and agents, every day', items:[['Copilot Home','copilot'],['Autopilot','copilot'],['Copilot Code','copilot']]},
+   {c:'blue', t:'AI grounded in your context', s:'Your data and the right models', items:[['Microsoft IQ','iq'],['Microsoft-Decision-1.1','models'],['New MAI models','models']]},
+   {c:'red', t:'AI you can trust', s:'Identify, govern & defend', items:[['Dynamic Agent Risk','agent365'],['Agent ID','entra'],['Microsoft Perception','perception']]}
+  ],
+  found:{l:'Built on Azure', items:[['Azure Cobalt 200','core'],['Azure Catalyst','core']]},
+  sections:[
+   {h:'AI in your work', cards:[
+    {t:'Copilot Home', d:'Chat and Cowork in one place. Word, Excel and PowerPoint sit alongside the conversation, and Auto picks the right model and reasoning effort.', b:'roll', ga:'now|Now · rolling out worldwide'},
+    {t:'Autopilot', d:'A persistent personal productivity agent with its own identity, memory and tools in your tenant. It can follow up on threads and run recurring work.', b:'roll:Rolling out · Frontier', ga:'tbc|To be confirmed · Microsoft will confirm GA timing separately'},
+    {t:'Copilot Code', d:'Natural-language app creation in a secure sandbox inside your tenant.', b:'frontier', ga:'date|December 2026'}]},
+   {h:'AI grounded in your context', cards:[
+    {t:'Microsoft IQ', d:'Generally available with no new SKU. It brings together enterprise context from Work IQ, Fabric IQ, Foundry IQ and Web IQ.', b:'ga'},
+    {t:'Microsoft-Decision-1.1', d:'Purpose-built for the decisions inside agentic systems, such as routing, classification and verification, with calibrated confidence.', b:'ga'},
+    {t:'New MAI models', d:'MAI-Code-2 is generally available in GitHub, alongside new MAI image and cyber defence models.', b:''}]},
+   {h:'AI you can trust', cards:[
+    {t:'Dynamic Agent Risk', d:'One risk score for every agent, built from six runtime signals plus posture and blast radius.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Agent ID', d:'Identities for discovered local agents and for Autopilot cloud agents, so every agent can be governed.', b:'preview', ga:'tbc|Not yet announced · core Microsoft Entra Agent ID is GA'},
+    {t:'Microsoft Perception', d:'Red, blue and green agent teams that find weaknesses, investigate threats and prioritize fixes.', b:'ga'}]}
+  ]},
+
+{ id:'core', num:'1.2', short:'Azure Core', color:'blue', tag:'Silicon to operations, built for agents',
+  kicker:'Azure · Core infrastructure',
+  title:'The agentic cloud, <em>rebuilt from the silicon up.</em>',
+  lede:'Azure brings AI agents into day-to-day cloud operations, runs <b>Foundry models and agents on your own AKS clusters</b>, launches <b>Cobalt 200</b> and previews <b>Windows Server 2028</b>.',
+  stats:[{n:50,pre:'up to ',suf:'%',l:'better CPU performance, Cobalt 200 vs Cobalt 100'},{n:24,l:'regions with Cobalt 200 VMs by year end'},{n:2028,l:'Windows Server version now in preview'}],
+  you:['Run Foundry models and agents on your own AKS clusters, choosing GPUs and regions for cost, latency and data residency.','Get up to 50% better CPU performance with Cobalt 200 VMs, now generally available.','Speed up migration and modernization with Azure Catalyst, from discovery and planning through execution.'],
+  visual:'flow',
+  sections:[
+   {h:'Agentic operations', cards:[
+    {t:'Natural language in Azure Monitor', d:'Query and explore observability data in plain language.', b:'ga'},
+    {t:'Azure Copilot spaces & custom skills', d:'Shared spaces and custom skills that tailor Azure Copilot to your team and environment.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Azure Workload Center', d:'Workload-specific operations, starting with Oracle and SAP.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Azure SRE Agent', d:'Customer-managed keys, Entra Agent ID and Agent 365 integration, cross-agent communication, Teams integration and multicloud investigations.', b:'preview', ga:'tbc|Not yet announced for these new capabilities'},
+    {t:'Azure Monitor health models', d:'Model the health of complete workloads, not only individual resources.', b:'ga'}]},
+   {h:'AI infrastructure', cards:[
+    {t:'Foundry on your AKS', d:'Deploy Foundry models and agents to your own AKS clusters, choosing GPUs and regions for cost, latency and data residency.', b:'preview', ga:'tbc|Not yet announced · public preview from early December'},
+    {t:'Agent Grid', d:'New Azure infrastructure for running agent workloads at scale.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Agent Sandbox for AKS', d:'An AKS extension that gives agent code VM-level isolation.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Flex nodes for AKS', d:'A more flexible way to supply compute nodes to AKS.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Cobalt 200 VMs', d:'Up to 50% better CPU performance than Cobalt 100, in 24 regions by year end.', b:'ga'},
+    {t:'Open source at the core', d:'vLLM, Ray and Kubernetes. Microsoft has been the largest public cloud contributor to CNCF projects over the past three years.', b:''}]},
+   {h:'Migrate & modernize', cards:[
+    {t:'Azure Catalyst', d:'A new, unified experience for agentic modernization across Azure and GitHub. It brings together AI-powered discovery, planning, migration and modernization across infrastructure, apps and data.', b:'ga'},
+    {t:'Azure Catalyst agent', d:'Formerly the Azure Copilot migration agent.', b:'ga'},
+    {t:'GitHub Copilot modernization', d:'Modernization rulebooks plus bring-your-own-model support.', b:'ga'},
+    {t:'BizTalk → Logic Apps', d:'Assisted migration of BizTalk integrations to Azure Logic Apps.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Databases', cards:[
+    {t:'Azure HorizonDB', d:'A managed PostgreSQL database service, now generally available.', b:'ga'},
+    {t:'Fabric HorizonDB', d:'Brings PostgreSQL directly into Microsoft Fabric, connecting your applications, data analytics and AI.', b:'preview', ga:'tbc|Not yet announced · Azure HorizonDB is already GA'}]},
+   {h:'Windows Server 2028', cards:[
+    {t:'Secure by default', d:'Hardened Server Core, Trusted Launch, post-quantum cryptography and automated certificates.', b:'preview', ga:'tbc|Not yet announced · preview via the Windows Server Insider Program'},
+    {t:'Faster storage', d:'NVMe over Fabrics and boot from ReFS.', b:'preview', ga:'tbc|Not yet announced · preview via the Windows Server Insider Program'},
+    {t:'Hybrid management', d:'Intune, Azure Arc, Windows Admin Center and vMode.', b:'preview', ga:'tbc|Not yet announced · preview via the Windows Server Insider Program'},
+    {t:'AI-ready on-premises', d:'Inference with Windows ML, Foundry Local, vLLM and Llama.cpp, on AMD MI350P and NVIDIA GB300.', b:'preview', ga:'tbc|Not yet announced · AMD MI350P support in preview from H1 2027'},
+    {t:'Execution Containers & governance', d:'Microsoft Execution Containers, with Agent 365 governance for agents on Windows Server.', b:'preview', ga:'tbc|Not yet announced · preview via the Windows Server Insider Program'}]}
+  ]},
+
+{ id:'models', num:'2.2', short:'New Models', color:'yellow', tag:'Decision-1.1, MAI-Code-2 and 11,000+ models',
+  kicker:'Microsoft Foundry · New models',
+  title:'Smarter decisions, <em>from a model built to make them.</em>',
+  lede:'<b>Microsoft-Decision-1.1</b> handles routing, classification, prioritization, verification and workflow control, with calibrated confidence. New MAI models arrive for code, images and cyber defence alongside a catalogue of more than 11,000 models.',
+  stats:[{n:68,l:'Artificial Analysis Decision Index v2.1 score'},{n:6,pre:'+',l:'points over Microsoft-Decision-1'},{n:2,suf:'×+',l:'faster than leading competitors'},{n:11000,suf:'+',l:'models in Microsoft Foundry'}],
+  you:['Make faster, more reliable decisions inside your agents with Microsoft-Decision-1.1 and its calibrated confidence.','Choose from more than 11,000 models in Foundry, or let the model router pick across the top 50.','Write code faster with MAI-Code-2, generally available in GitHub.'],
+  visual:'bars',
+  sections:[
+   {h:'The MAI family', cards:[
+    {t:'MAI-Code-2 & MAI-Code-2-Flash', d:'Generally available in GitHub. MAI-Code-2-Flash is also in private preview in Foundry.', b:'ga'},
+    {t:'MAI-Image-2.7 & 2.7-Flash', d:'The next generation of Microsoft image generation models.', b:'preview', ga:'tbc|Not yet announced · public preview in Foundry'},
+    {t:'MAI-Cyber-2-Flash', d:'A cyber defence model, available only in Codename MDASH.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Choice & routing in Foundry', cards:[
+    {t:'Model router', d:'Routes across the top 50 models, supports AI Gateway, and adds the Messages and Responses APIs.', b:''},
+    {t:'11,000+ models', d:'Models from OpenAI, Anthropic (Claude), Muse, Mistral and the open-source community.', b:''},
+    {t:'fal video models', d:'Kling, LTX and MiniMax video generation in Foundry.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Baseten on Foundry', d:'Baseten inference in Foundry, within the US Data Zone.', b:'preview', ga:'tbc|Not yet announced'}]}
+  ]},
+
+{ id:'copilot', num:'4', short:'Copilot', color:'green', tag:'Chat + Cowork, Office, Code and Autopilot',
+  kicker:'Microsoft Copilot',
+  title:'One Copilot that <em>chats, coworks and builds.</em>',
+  lede:'A new <b>Copilot Home</b> combines Chat and Cowork. Auto hands work between them, Office apps are built in, and Copilot Code and Autopilot take agents from conversation to execution.',
+  stats:[{n:2,l:'modes in one Home: Chat & Cowork'},{n:3,l:'Office apps in Copilot: Word, Excel, PowerPoint'},{n:38,suf:'+',l:'Salesforce sales skills via the Salesforce MCP server'}],
+  you:['Move from a quick question in Chat to real work in Cowork, without losing your context.','Create and edit Word, Excel and PowerPoint files in Copilot, keeping their permissions and sensitivity labels.','Hand recurring work to Autopilot, an agent with its own identity that your admins can see and manage.'],
+  visual:'handoff',
+  sections:[
+   {h:'One place to work', cards:[
+    {t:'Copilot Home', d:'One home for Chat and Cowork. Generally available, and rolling out worldwide.', b:'roll', ga:'now|Now · rolling out worldwide'},
+    {t:'Auto: Chat → Cowork', d:'Auto recommends moving from Chat to Cowork and keeps your context.', b:'ga'},
+    {t:'Auto in Cowork', d:'Auto chooses the effort level for each task, powered by Microsoft-Decision-1.1.', b:'frontier', ga:'tbc|Not yet announced'},
+    {t:'Office in Copilot', d:'Word, Excel and PowerPoint built in. Files save to OneDrive and keep their permissions and sensitivity labels.', b:'ga'},
+    {t:'Copilot Workspaces', d:'Evolved from Notebooks, a shared place for projects and context.', b:'frontier', ga:'date|Worldwide rollout begins December 2026'},
+    {t:'Today Brief & Today Feed', d:'A personalised daily brief and feed, available through Frontier.', b:'pp', ga:'tbc|Not yet announced'},
+    {t:'Proactive Cowork', d:'Cowork suggests tasks from Work IQ signals and can call declarative agents.', b:'pp', ga:'tbc|Not yet announced'}]},
+   {h:'Build & automate', cards:[
+    {t:'Copilot Code', d:'A secure cloud sandbox inside your tenant, a local sandbox on Windows (macOS coming soon), plus iOS and Android. GA in December.', b:'frontier', ga:'date|December 2026'},
+    {t:'Autopilot', d:'Agents with their own identity, memory and tools. @mention them in Teams; every action is tied to their own agent ID.', b:'roll:Rolling out · Frontier', ga:'tbc|To be confirmed · Microsoft will confirm GA timing separately'},
+    {t:'Copilot Managed Runtime', d:'Optional Fabric data backend. Publish Agents and Workflows to Copilot Studio from the CLI.', b:'ga', ga:'now|Now · worldwide rollout completes mid-December'}]},
+   {h:'Business apps', cards:[
+    {t:'Dynamics 365 Sales & ERP plugins', d:'Sales and ERP capabilities as plugins in Copilot.', b:'ga'},
+    {t:'Salesforce in Copilot', d:'38+ sales skills through the Salesforce MCP server, plus Sales Cloud in Teams (pilot).', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Zero Copy Data Federation', d:'Salesforce Data 360 and Microsoft Fabric share data without copying it.', b:'ga'},
+    {t:'Dynamics 365 Activate', d:'SAP ECC discovery and Salesforce migration.', b:'ga'},
+    {t:'Agent 365 FinOps for AI', d:'Cost Management (Preview) and Business Analytics (Frontier) for AI spend.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'More highlights', cards:[
+    {t:'Autopilot as a teammate', d:'A persistent, proactive personal productivity agent. It can follow up on threads, run recurring work and keep projects moving.'},
+    {t:'Auto picks for you', d:'Auto selects the right model and reasoning effort for each request.'},
+    {t:'Word, Excel & PowerPoint, live', d:'Shape your work with Copilot or edit directly, with familiar formatting, commenting and real-time coauthoring, then move into the full Office apps when you need them.'}]}
+  ]},
+
+{ id:'iq', num:'5', short:'Microsoft IQ', color:'red', tag:'Context and continuous improvement',
+  kicker:'Microsoft IQ',
+  title:'Context is the new <em>competitive edge.</em>',
+  lede:'<b>Microsoft IQ is generally available, with no new SKU.</b> It combines enterprise context from Work IQ, Fabric IQ, Foundry IQ and Web IQ with a continuous improvement loop for agents.',
+  stats:[{n:4,l:'IQs: Work, Fabric, Foundry & Web'},{n:207.5,dec:1,suf:'M',l:'entities in Web IQ Places'},{n:40,suf:'B+',l:'Web IQ Commerce listings'}],
+  you:['Ground Copilot and your agents in your organization\'s own context, with no new SKU.','Bring Power BI semantic models and Fabric data into Copilot.','Keep your agents getting better with Agent Optimizer and multi-turn evaluation.'],
+  visual:'iq',
+  iq:[
+   {c:'red', t:'Work IQ', items:[['Richer context & memory','ga'],['More ways to act','ga'],['Listen capability','preview','tbc'],['Expanded controls','preview','tbc'],['OpenAI & Anthropic integrations','']]},
+   {c:'green', t:'Fabric IQ', items:[['Copilot & Fabric apps integrations','ga'],['Power BI semantic models in Copilot','ga'],['Excel Edit with Copilot','preview','tbc'],['Ontologies in GitHub Copilot','preview','tbc'],['ChatGPT & Claude connectors','preview','tbc']]},
+   {c:'blue', t:'Foundry IQ', items:[['Knowledge graphs','preview','tbc'],['Microsoft-Retriever-1','preview','tbc'],['Foundry IQ resource in every new project','preview','tbc'],['SharePoint indexed knowledge source','ga']]},
+   {c:'yellow', t:'Web IQ', items:[['All Azure customers, at a lower price','ga'],['Auto, Auto Advanced & Scopes','ga'],['Places (207.5M entities) & Weather','ga'],['Commerce: 40B+ listings','pp','tbc'],['Health-aware ranking','ga']]}
+  ],
+  sections:[
+   {h:'Reusable building blocks', cards:[
+    {t:'Business plugins', d:'Curated by experts, inherited hierarchically and governed.', b:'frontier', ga:'tbc|Not yet announced'},
+    {t:'Skills, tools, agents & plugins', d:'Build once and reuse across the organization.', b:'ga'}]},
+   {h:'Continuous improvement', cards:[
+    {t:'Agent Optimizer', d:'Improves agent quality on a continuous cycle.', b:'ga'},
+    {t:'Multi-turn evaluation & insights', d:'Evaluates whole conversations, not just single turns.', b:'ga'},
+    {t:'Human annotation', d:'Adds expert judgement to the improvement loop.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Managed Training', d:'Training of models for your agents, managed for you.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Programmed Training', d:'Training driven by programmes that you define.', b:'preview', ga:'tbc|Not yet announced'}]}
+  ]},
+
+{ id:'agent365', num:'7.1', short:'Agent 365', color:'blue', tag:'Dynamic Agent Risk and governance',
+  kicker:'Security · Agent 365',
+  title:'Every agent, <em>seen, scored and governed.</em>',
+  lede:'<b>Dynamic Agent Risk</b> combines six runtime signals with posture and blast radius, and the score follows each agent wherever it goes. Together with the Agent Registry, it is a core primitive of Agent 365.',
+  stats:[{n:6,l:'runtime signals fused into one risk score'},{n:4,l:'security vendors feeding signals into Microsoft Sentinel'},{n:24,suf:'/7',l:'mitigation through Microsoft Perception'}],
+  you:['See every agent\'s risk in one dynamic score that follows it wherever it goes.','Find inactive and ownerless agents, and govern the plugins, skills and MCP servers they use.','Measure AI by the work it completes, with FinOps for AI and Business Analytics.'],
+  visual:'risk',
+  sections:[
+   {h:'Risk & observability', cards:[
+    {t:'Dynamic Agent Risk', d:'Identity, access, data, endpoint, cloud and network signals, combined with posture and blast radius.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Signals from your security tools', d:'Check Point, Cyera, Darktrace and Zenity feed Microsoft Sentinel. Microsoft computes a low, medium or high risk level.', b:''},
+    {t:'Management insights', d:'On by default for Microsoft agents. Viva Insights no longer needs an Agent 365 license (50 Copilot licenses still required).', b:'ga'},
+    {t:'Action center', d:'Finds inactive and ownerless agents. Private preview in December.', b:'pp', ga:'tbc|Not yet announced · private preview from December'},
+    {t:'Agent Map classification', d:'Classifies agents by use case and task.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Governance', cards:[
+    {t:'Plugins & skills governance', d:'Govern the plugins and skills that agents can use.', b:'ga'},
+    {t:'MCP server & tool governance', d:'With Azure AI Gateway and LiteLLM.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Local & shadow agents', d:'Governance for local and unsanctioned agents.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Business Analytics', d:'A new experience for business leaders that shows AI usage, cost and value, so you measure AI by the work it completes.', b:'frontier', ga:'tbc|Not yet announced · all Frontier tenants by 7 December'}]},
+   {h:'More highlights', cards:[
+    {t:'FinOps for AI', d:'Centralized cost management, forecasting, policies, alerts and business-value measurement across agents and AI services.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Contain unapproved local agents', d:'Mark devices with unapproved agents as noncompliant in Intune, and use Microsoft Entra Conditional Access to block them from company data.', b:''},
+    {t:'Autopilot, governed', d:'Every action Autopilot takes is tied to its own agent ID and safety-checked, and admins can see and manage it.', b:''}]}
+  ]},
+
+{ id:'entra', num:'7.4', short:'Entra', color:'yellow', tag:'Identity and access for every agent',
+  kicker:'Security · Microsoft Entra',
+  title:'Zero Trust, <em>extended to every agent.</em>',
+  lede:'Microsoft Entra gives local and cloud agents their own identities, secures agent network traffic with Global Secure Access, and adds new controls for credentials, backup and governance.',
+  stats:[{n:30,suf:'-day',l:'retention in Backup & Recovery Premium'},{n:3,l:'AI Readiness Initiatives in Perception'},{n:2,l:'new Agent ID scenarios: local & Autopilot'}],
+  you:['Give local and cloud agents their own identities, starting with tools such as GitHub Copilot CLI and Claude Code.','Bring agent network traffic under Global Secure Access.','Plan Conditional Access changes before you roll them out.'],
+  visual:'layers',
+  sections:[
+   {h:'Agent identity', cards:[
+    {t:'Agent ID for local agents', d:'Identities for discovered local agents such as GitHub Copilot CLI and Claude Code.', b:'preview', ga:'tbc|Not yet announced · core Microsoft Entra Agent ID is GA'},
+    {t:'Agent ID for Autopilot', d:'Identities for Autopilot cloud agents.', b:'preview', ga:'tbc|Not yet announced · core Microsoft Entra Agent ID is GA'},
+    {t:'MCP Server for Enterprise', d:'An MCP server for Microsoft Entra, built for enterprises.', b:'ga'}]},
+   {h:'Protect & govern', cards:[
+    {t:'Conditional Access policy plans', d:'Plan Conditional Access policy changes before rolling them out.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'High assurance credentials', d:'Stronger credentials for high-stakes access.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Backup & Recovery Premium', d:'30-day retention, integrated with Microsoft 365 Backup.', b:'preview', ga:'tbc|Not yet announced · Backup & Recovery (Entra ID P1/P2) is GA'},
+    {t:'Cross-tenant configuration management', d:'Manage configuration consistently across tenants.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Privileged Identity Management', d:'Updates to privileged access controls.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Dynamic membership groups', d:'Group membership that updates automatically.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Global Secure Access', cards:[
+    {t:'Agentic traffic acquisition', d:'Routes agent traffic through Global Secure Access.', b:'ga'},
+    {t:'Local agents & MCP Firewall', d:'Network protection for local agents, with an MCP Firewall.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Unsanctioned agents & adaptive access', d:'Detect unsanctioned agents and adapt access in real time.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Customers & readiness', cards:[
+    {t:'External ID', d:'Better identity experiences for customers.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'AI Readiness Initiatives', d:'In Microsoft Perception: patching and vulnerability management, modernizing authentication with passkeys, and agent discovery and governance. Preview in January.', b:'preview', ga:'tbc|Not yet announced · preview from January 2027'}]}
+  ]},
+
+{ id:'perception', num:'7.6', short:'Perception', color:'red', tag:'Red, blue and green agent teams',
+  kicker:'Security · Microsoft Perception',
+  title:'Security that <em>thinks like a team.</em>',
+  lede:'<b>Microsoft Perception is generally available</b> (formerly Project Perception). Red-team agents look for weaknesses, blue-team agents triage and investigate, and green-team agents prioritize fixes, all coordinated by playbooks.',
+  stats:[{n:80,pre:'~',suf:'%',l:'of alerts in a typical Defender queue handled by the Triage Agent'},{n:100,suf:'+',l:'agents in Codename MDASH'},{n:90,suf:'-day',l:'included Defender data retention in ISOC (preview)'},{n:4,l:'stages in the Codename MDASH pipeline'}],
+  you:['Let the Triage Agent handle about 80% of the alerts in a typical Defender queue.','Find weaknesses before attackers do, with red-team agents such as the Web App Pen Test Agent.','Bring SIEM and threat protection together in the Integrated Security Operations Center (ISOC) in Defender.'],
+  visual:'teams',
+  sections:[
+   {h:'Detect & respond', cards:[
+    {t:'Triage Agent', d:'Handles about 80% of the alerts in a typical Defender queue.', b:'ga'},
+    {t:'Investigation Agent', d:'Investigates across endpoints, identities, email, Active Directory and cloud.', b:'ga'},
+    {t:'Third-party coverage', d:'Support for AWS, Salesforce and Okta.', b:''},
+    {t:'Detect emerging threats', d:'A KQL-powered playbook for new threats.', b:''},
+    {t:'Web App Pen Test Agent', d:'Red-team penetration testing for web apps.', b:'preview', ga:'tbc|Not yet announced · invite-only preview'},
+    {t:'Codename MDASH', d:'More than 100 specialized agents and the MAI-Cyber model family find and validate vulnerabilities in code repos, in a four-stage pipeline.', b:'preview', ga:'tbc|Not yet announced'}]},
+   {h:'Reduce exposure', cards:[
+    {t:'Posture Prioritization Agent', d:'Ranks posture fixes by risk.', b:''},
+    {t:'Reduce exposure risk playbook', d:'The Risk Reduction Agent coordinates patching through Intune, or shielding.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Secure AI agents & playbooks', d:'Playbooks dedicated to securing AI agents.', b:'pp', ga:'tbc|Not yet announced'}]},
+   {h:'Built to fit', cards:[
+    {t:'Inside the SOC', d:'Playbooks run inside Defender SOC workflows.', b:''},
+    {t:'API- & MCP-first', d:'Open to your tools and agents.', b:''},
+    {t:'Governance & cost calculator', d:'Plan cost and governance up front.', b:''}]},
+   {h:'Defender & data protection', cards:[
+    {t:'ISOC in Defender', d:'Core capabilities in the Integrated Security Operations Center are generally available, bringing SIEM and threat protection together. The full breadth of SIEM capabilities and 90 days of included Defender data retention are in preview.', b:'ga', wide:1},
+    {t:'Vulnerability shielding', d:'Expands attack disruption in Defender beyond containing compromised assets, to anticipating and shielding vulnerabilities.', b:'preview', ga:'tbc|Not yet announced'},
+    {t:'Protection for local AI agents', d:'Defender scans local AI agent calls for malicious hidden instructions, and works with Network DLP, Microsoft Entra and Microsoft Purview to keep sensitive data from leaving.', b:''}]}
+  ]},
+
+{ id:'conversations', num:'You', short:'Priorities', color:'green', tag:'Seven business priorities, mapped',
+  kicker:'Your priorities · Where to start',
+  title:'Start from <em>your priorities.</em>',
+  lede:'Every organization starts from a different place. Pick the <b>business priority</b> closest to yours to see the Ignite 2026 announcements that power it, then jump straight to the details.',
+  stats:[{n:7,l:'business priorities, mapped to the announcements'},{n:3,l:'priorities for transforming with AI'},{n:4,l:'priorities for strengthening your foundations'},{n:7,suf:'/7',l:'priorities supported by FinOps for AI'}],
+  visual:'convos',
+  convos:[
+   {t:'Put AI to work for every employee', g:'Transform', items:[['Copilot Home: Chat + Cowork','copilot'],['Word, Excel & PowerPoint in Copilot','copilot'],['Auto','copilot'],['Autopilot','copilot'],['Copilot Workspaces','copilot'],['Agent 365 Business Analytics','agent365'],['FinOps for AI','agent365']]},
+   {t:'Build AI grounded in your data', g:'Transform', items:[['Microsoft IQ','iq'],['Microsoft-Decision-1.1','models'],['New MAI models','models'],['Agent Optimizer','iq'],['Foundry on your AKS','core'],['Azure Cobalt 200','core'],['FinOps for AI','agent365']]},
+   {t:'Secure and govern AI', g:'Transform', items:[['Microsoft Perception','perception'],['Triage & Investigation Agents','perception'],['Web App Pen Test Agent','perception'],['Codename MDASH','perception'],['Dynamic Agent Risk','agent365'],['Agent ID','entra'],['FinOps for AI','agent365']]},
+   {t:'Equip every employee, securely', g:'Foundations', items:[['Copilot Home: Chat + Cowork','copilot'],['Word, Excel & PowerPoint in Copilot','copilot'],['ISOC in Defender','perception'],['AI Readiness Initiatives','entra'],['Vulnerability shielding','perception'],['Protection for local AI agents','perception'],['FinOps for AI','agent365']]},
+   {t:'Automate business processes with agents', g:'Foundations', items:[['Work IQ','iq'],['Dynamics 365 Sales & ERP plugins','copilot'],['Agent 365 Business Analytics','agent365'],['FinOps for AI','agent365']]},
+   {t:'Modernize your infrastructure and apps', g:'Foundations', items:[['Azure Catalyst','core'],['Azure HorizonDB','core'],['Windows Server 2028','core'],['Azure Cobalt 200','core'],['FinOps for AI','agent365']]},
+   {t:'Unify and govern your data and AI', g:'Foundations', items:[['Fabric HorizonDB','core'],['Microsoft IQ','iq'],['Fabric IQ','iq'],['New MAI models','models'],['Azure Cobalt 200','core'],['FinOps for AI','agent365']]}
+  ],
+  sections:[
+   {h:'Two ways to start', cards:[
+    {t:'Transform with AI', d:'For organizations ready to put agents to work: AI for every employee, AI grounded in your data, and AI that is secure and governed from day one.'},
+    {t:'Strengthen your foundations', d:'For organizations modernizing first: secure productivity for every employee, agent-powered business processes, modern infrastructure and apps, and a unified data estate.'}]},
+   {h:'Questions to ask your team', cards:[
+    {t:'Do you know every agent in your organization?', d:'Agent 365, Dynamic Agent Risk and Microsoft Entra Agent ID help you discover, score and govern them.'},
+    {t:'Is your data ready to ground AI?', d:'Microsoft IQ and Microsoft Fabric bring your enterprise context to Copilot and your agents.'},
+    {t:'Can your security team keep up?', d:'Microsoft Perception agent teams triage, investigate and prioritize fixes, coordinated by playbooks.'},
+    {t:'Where could agents give your people time back?', d:'Cowork, Autopilot and the Dynamics 365 plugins in Copilot take on everyday and recurring work.'}]}
+  ]},
+
+{ id:'activate', num:'Next', short:'Get Started', color:'yellow', tag:'Catch up, skill up, make it yours',
+  kicker:'Your next steps · After Ignite',
+  title:'From keynote <em>to your next move.</em>',
+  lede:'Much of what Microsoft announced at Ignite 2026 is ready to use today, with more arriving over the coming months. Use the <b>road to general availability</b> below to plan when each feature is ready for production. <b>Catch up</b> on the sessions and announcements, <b>skill up</b> your teams with hands-on labs, then <b>make it yours</b>: ask Copilot what matters most for your organization, and plan your next steps with your Microsoft account team.',
+  stats:[{n:3,l:'steps: catch up, skill up, make it yours'},{n:5,l:'availability milestones to plan around'},{n:2,l:'new Copilot features with a December 2026 GA date'},{n:4,l:'Copilot prompts to try today'}],
+  visual:'timeline',
+  tlCap:'What\'s available, and when',
+  timeline:[
+   ['Today','Generally available','Microsoft IQ, Microsoft Perception, Cobalt 200 VMs, Azure Catalyst and Office in Copilot are ready to use','green'],
+   ['Today','In preview','Dynamic Agent Risk, Agent ID, Foundry on your AKS, Windows Server 2028 and more are ready to try','blue'],
+   ['Rolling out','Copilot Home & Autopilot','Copilot Home is generally available and rolling out worldwide, and Autopilot is rolling out through the Frontier program','brand'],
+   ['December','Copilot Code & Workspaces','Copilot Code becomes generally available, Copilot Workspaces begins its worldwide rollout, and Foundry on your AKS enters public preview','red'],
+   ['January','AI Readiness Initiatives','Preview of patching, passkey and agent governance initiatives in Microsoft Perception','yellow']
+  ],
+  roadCap:'The road to general availability · select a feature to see it in context',
+  road:[
+   {l:'Now', t:'Generally available', c:'green', items:[
+    ['Microsoft IQ','No new SKU','ga','iq'],
+    ['Microsoft Perception','Formerly Project Perception','ga','perception'],
+    ['Copilot Home & Office in Copilot','Rolling out worldwide','ga','copilot'],
+    ['Copilot Managed Runtime','Worldwide rollout completes mid-December','ga','copilot'],
+    ['Cobalt 200, Azure Catalyst & Azure HorizonDB','Ready for production workloads','ga','core'],
+    ['Microsoft-Decision-1.1 & MAI-Code-2','In Foundry and GitHub','ga','models'],
+    ['Microsoft Entra Agent ID','Core Agent ID is GA; new scenarios in preview','ga','entra']]},
+   {l:'December 2026', t:'Next up', c:'red', items:[
+    ['Copilot Code','Becomes generally available','ga','copilot'],
+    ['Copilot Workspaces','Worldwide GA rollout begins','ga','copilot'],
+    ['Foundry on your AKS','Public preview from early December','pv','core'],
+    ['Agent 365 Business Analytics','Reaches all Frontier tenants by 7 December','pv','agent365'],
+    ['Agent 365 Action center','Private preview','pv','agent365']]},
+   {l:'Early 2027', t:'Coming next', c:'blue', items:[
+    ['AI Readiness Initiatives','Preview in Microsoft Perception from January','pv','entra'],
+    ['Windows Server 2028 AI accelerators','AMD MI350P support in preview from H1 2027','pv','core']]},
+   {l:'To be announced', t:'In preview today', c:'yellow', items:[
+    ['Autopilot','Microsoft will confirm GA timing separately','tbc','copilot'],
+    ['Windows Server 2028','Preview via the Windows Server Insider Program','tbc','core'],
+    ['Dynamic Agent Risk & FinOps for AI','Preview in Agent 365','tbc','agent365'],
+    ['Agent ID for local & Autopilot agents','Preview in Microsoft Entra','tbc','entra'],
+    ['MAI-Image-2.7 & Fabric HorizonDB','Public preview','tbc','models'],
+    ['Vulnerability shielding & Codename MDASH','Preview in Defender and Perception','tbc','perception']]}
+  ],
+  roadNote:'GA timing reflects Microsoft\'s public statements as of 19 November 2026 (Ignite Book of News, Microsoft blogs and Microsoft 365 Message Center) and may change. <b>Not yet announced</b> means Microsoft has not yet published a GA date. Check the Microsoft 365 roadmap and Azure updates for the latest.',
+  phases:[
+   {l:'Step 1', t:'Catch up', c:'red', steps:[['1','Watch the sessions','nx-1'],['2','Read the Book of News','nx-2'],['3','Read the Official Microsoft Blog','nx-3']]},
+   {l:'Step 2', t:'Skill up', c:'blue', steps:[['4','Get hands-on','nx-4'],['5','Try the previews','nx-5']]},
+   {l:'Step 3', t:'Make it yours', c:'green', steps:[['✦','Ask Copilot what it means for you','nx-p'],['6','Plan with your Microsoft team','nx-6']]}
+  ],
+  sections:[
+   {h:'Step 1 · Catch up', cards:[
+    {id:'nx-1', t:'<span class="step-n">01</span>Watch the sessions', d:'Watch Ignite sessions or explore the session catalog, starting with the topics closest to your priorities.'},
+    {id:'nx-2', t:'<span class="step-n">02</span>Read the Book of News', d:'Every announcement in one place, with status and availability. <a href="https://news.microsoft.com/events/ignite/2026/book-of-news/" target="_blank" rel="noopener">Open the Book of News ↗</a>'},
+    {id:'nx-3', t:'<span class="step-n">03</span>Read the Official Microsoft Blog', d:'For the bigger story behind the announcements and what they mean for your industry.'}]},
+   {h:'Step 2 · Skill up', cards:[
+    {id:'nx-4', t:'<span class="step-n">04</span>Get hands-on', d:'Hands-on labs and AI Skills Navigator playlists tied to the announcements help your teams learn by doing.'},
+    {id:'nx-5', t:'<span class="step-n">05</span>Try the previews', d:'Many announcements are in preview today. Pick one or two that match your priorities and test them in your own environment.'}]},
+   {h:'Step 3 · Make it yours', cards:[
+    {id:'nx-p', t:'Ask Copilot what Ignite means for you', d:'Grounded in your work through Work IQ, Copilot can connect the announcements to your own projects and priorities. Try these prompts in Chat or Cowork:'
+      +['Summarize the Microsoft Ignite 2026 announcements that are most relevant to our current projects and priorities.','Draft a one-page briefing for our leadership team on what Ignite 2026 means for our AI security and governance.','Create a PowerPoint deck that separates the Ignite 2026 announcements available now from those in preview, for our IT roadmap.','Based on the work our team does each week, which recurring tasks could Cowork or Autopilot take on?'].map(x=>'<span class="prompt">“'+x+'”</span>').join(''), wide:1},
+    {id:'nx-6', t:'<span class="step-n">06</span>Plan with your Microsoft team', d:'Talk to your Microsoft account team about a briefing tailored to your organization, which previews to pilot first, and how to manage AI spend with FinOps for AI in Agent 365.'}]}
+  ]}
+];
+</script>
+
+<script>
+(() => {
+  const D = window.STORY;
+  const N = D.length;
+  const BON = 'https://news.microsoft.com/events/ignite/2026/book-of-news/';
+  const BADGE = { ga: 'GA', preview: 'Preview', frontier: 'Frontier', pp: 'Private preview', roll: 'Rolling out' };
+  const COLVAR = { red: '--ms-red', green: '--ms-green', blue: '--ms-blue', yellow: '--ms-yellow', brand: '--ms-brand' };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const LOGO = '<svg class="mslogo" viewBox="0 0 23 23" aria-hidden="true"><rect class="r" x="1" y="1" width="10" height="10"/><rect class="g" x="12" y="1" width="10" height="10"/><rect class="b" x="1" y="12" width="10" height="10"/><rect class="y" x="12" y="12" width="10" height="10"/></svg>';
+
+  const badge = (b) => {
+    if (!b) return '';
+    const [k, custom] = b.split(':');
+    return `<span class="badge b-${k}">${custom || BADGE[k]}</span>`;
+  };
+  const GAK = { now: 'ga-now', date: 'ga-date', tbc: 'ga-tbc' };
+  const gaChip = (g) => {
+    if (!g) return '';
+    const [k, txt] = g.split('|');
+    const [head, ...rest] = txt.split(' · ');
+    return `<div class="ga ${GAK[k]}" title="General availability timing"><i>GA</i><span><b>${head}</b>${rest.length ? ` · ${rest.join(' · ')}` : ''}</span></div>`;
+  };
+  const card = (c) => `<article class="card rv${c.wide ? ' wide' : ''}"${c.id ? ` id="${c.id}"` : ''}><div class="card-top"><h4>${c.t}</h4>${badge(c.b)}</div><p>${c.d}</p>${gaChip(c.ga)}</article>`;
+  const stat = (s) => `<div class="stat rv"><b data-count="${s.n}" data-dec="${s.dec || 0}" data-pre="${s.pre || ''}" data-suf="${s.suf || ''}">${s.pre || ''}0${s.suf || ''}</b><span>${s.l}</span></div>`;
+  const idx = (id) => D.findIndex(c => c.id === id);
+  const GCOL = { Transform: '--ms-green', Foundations: '--ms-blue' };
+  const cvPanel = (cv) => `<div class="cv-panel" style="--gc:var(${GCOL[cv.g]})"><div class="vis-cap" style="margin:0">${cv.g} · ${cv.items.length} announcements</div><h4>${cv.t}</h4>
+      <div class="cv-sub">Select an announcement to jump to its chapter.</div>
+      <div class="cv-chips">${cv.items.map((it, k) => { const j = idx(it[1]); return `<button class="chip cv-chip c-${D[j].color}" data-go="${j}" style="--k:${k}">${it[0]}<i>→ ${D[j].short}</i></button>`; }).join('')}</div></div>`;
+
+  /* ---------- Visuals ---------- */
+  const VIS = {
+    flow: () => `<div class="vis-cap">The Azure stack, end to end</div><div class="flow">${[
+      ['Silicon', 'Cobalt 200 · MI350P · GB300', '--ms-blue'],
+      ['Infrastructure', 'AKS · Agent Grid · Flex nodes', '--ms-brand'],
+      ['Platform', 'Foundry on AKS · Sandbox', '--ms-green'],
+      ['Operations', 'SRE Agent · Azure Monitor', '--ms-yellow'],
+      ['Modernization', 'Catalyst · Windows Server 2028', '--ms-red']
+    ].map((s, k) => `<div class="fstep" style="--fc:var(${s[2]});--k:${k}"><div class="dot">0${k + 1}</div><b>${s[0]}</b><small>${s[1]}</small></div>`).join('')}</div>`,
+
+    bars: () => `<div class="feature"><div>
+        <span class="badge b-ga">Generally available</span>
+        <h3>Microsoft-Decision-1.1</h3>
+        <p>Built for the decisions inside agentic systems, with calibrated confidence scores. Based on Gemma 4 26B A4B with multimodal image input. Available in Foundry, OpenRouter and Vercel.</p>
+        <div class="chips">${['Routing', 'Classification', 'Prioritization', 'Verification', 'Workflow control'].map(x => `<span class="chip">${x}</span>`).join('')}</div>
+        <p style="margin-top:10px">Scores higher than Jev 1.14, Gemini-Decision-1 and GPT-6 Luna (Decisions). Routes Copilot requests between Chat and Cowork, and powers Auto effort in Cowork.</p>
+      </div><div>
+        <div class="vis-cap">AA Decision Index v2.1</div>
+        <div class="bars">
+          <div><div class="bar-l"><span>Microsoft-Decision-1</span><span>62</span></div><div class="bar-t"><div class="bar-f" style="--w:${62 / 75 * 100}%;--fc:var(--ms-gray)"></div></div></div>
+          <div><div class="bar-l"><span>Microsoft-Decision-1.1</span><span>68</span></div><div class="bar-t"><div class="bar-f" style="--w:${68 / 75 * 100}%;--fc:var(--ms-yellow)"></div></div></div>
+        </div>
+        <div class="speed"><b>2×+</b> faster than leading competitors</div>
+      </div></div>`,
+
+    handoff: () => `<div class="vis-cap">Copilot Home · Auto hands off with full context</div><div class="handoff">
+        <div class="pane" style="--pc:var(--ms-blue)"><h5><i></i>Chat</h5><div class="ln" style="width:80%"></div><div class="ln hl" style="width:95%"></div><div class="ln" style="width:60%"></div><div class="ln" style="width:72%"></div></div>
+        <div class="auto"><span>AUTO</span></div>
+        <div class="pane" style="--pc:var(--ms-green)"><h5><i></i>Cowork</h5><div class="ln hl" style="width:90%"></div><div class="ln" style="width:70%"></div><div class="ln hl" style="width:84%;animation-delay:1.2s"></div><div class="ln" style="width:52%"></div></div>
+      </div>`,
+
+    iq: (ch) => `<div class="iqviz"><div><div class="vis-cap">Four sources of context, one IQ</div><div class="quad">${ch.iq.map(q => `<div class="q c-${q.c}"><b>${q.t}</b><small>${q.items.slice(0, 2).map(i => i[0]).join(' · ')}</small></div>`).join('')}</div></div>
+      <div class="loop" aria-label="Continuous improvement loop"><div class="ring"></div><div class="core">Continuous<br>improvement</div>${
+        [['Evaluate', '--ms-red'], ['Insights', '--ms-yellow'], ['Annotate', '--ms-green'], ['Optimize', '--ms-blue'], ['Train', '--ms-red'], ['Deploy', '--ms-green']]
+          .map((s, k) => `<div class="st" style="--k:${k};--lc:var(${s[1]})">${s[0]}</div>`).join('')}</div></div>`,
+
+    risk: () => `<div class="risk"><div><div class="vis-cap">Six runtime signals → one dynamic risk score</div><div class="sigs">${
+        ['Identity', 'Access', 'Data', 'Endpoints', 'Cloud', 'Network'].map((s, k) => `<div class="sig" style="--k:${k}"><i></i>${s}</div>`).join('')}</div>
+        <div class="fuse">+ <b>posture</b> + <b>blast radius</b> → follows the agent everywhere</div></div>
+      <div class="gauge"><svg viewBox="0 0 220 130" role="img" aria-label="Risk gauge: low, medium, high">
+        <path d="M30 110 A80 80 0 0 1 70 40.72" fill="none" stroke="var(--ms-green)" stroke-width="16"/>
+        <path d="M70 40.72 A80 80 0 0 1 150 40.72" fill="none" stroke="var(--ms-yellow)" stroke-width="16"/>
+        <path d="M150 40.72 A80 80 0 0 1 190 110" fill="none" stroke="var(--ms-red)" stroke-width="16"/>
+        <g class="needle"><line x1="110" y1="110" x2="110" y2="44" stroke="var(--cp-text)" stroke-width="4" stroke-linecap="round"/></g>
+        <circle cx="110" cy="110" r="9" fill="var(--cp-text)"/>
+        <text x="22" y="127">LOW</text><text x="92" y="22">MEDIUM</text><text x="178" y="127">HIGH</text>
+      </svg></div></div>`,
+
+    layers: () => {
+      const L = ['Global Secure Access', 'Tenant governance', 'ID Governance', 'Microsoft Entra ID'];
+      let html = `<div class="layer core"><b>Agent ID</b><small>Local agents · Autopilot cloud agents</small></div>`;
+      for (let i = L.length - 1; i >= 0; i--) html = `<div class="layer"><span>${L[i]}</span>${html}</div>`;
+      return `<div class="vis-cap">Zero Trust layers, from the network edge to the agent</div>${html}`;
+    },
+
+    teams: () => `<div class="vis-cap">Agent teams, coordinated by playbooks</div><div class="teams">
+        <div class="team" style="--tc:var(--ms-red)"><h5><i></i>Red team</h5><p>Looks for weaknesses first, like the Web App Pen Test Agent.</p></div>
+        <div class="team" style="--tc:var(--ms-blue)"><h5><i></i>Blue team</h5><p>Triages, investigates, detects and produces threat intelligence.</p></div>
+        <div class="team" style="--tc:var(--ms-green)"><h5><i></i>Green team</h5><p>Prioritizes posture fixes and reduces exposure risk.</p></div>
+      </div><div class="pbar"><span>Playbooks orchestrate</span><small>inside Defender SOC workflows</small></div>`,
+
+    pillars: (ch) => `<div class="vis-cap">Three pillars · one foundation</div><div class="pillars">${ch.pillars.map((p, k) =>
+        `<div class="pil" style="--pc:var(${COLVAR[p.c]});--k:${k}"><div class="pil-cap"><b>${p.t}</b><small>${p.s}</small></div><div class="pil-col">${
+          p.items.map(it => `<button class="pil-it" data-go="${idx(it[1])}">${it[0]}</button>`).join('')}</div></div>`).join('')}</div>
+      ${ch.found ? `<div class="found"><span>${ch.found.l}</span>${ch.found.items.map(it => `<button data-go="${idx(it[1])}">${it[0]}</button>`).join('')}</div>` : ''}`,
+
+    convos: (ch) => {
+      const groups = ['Transform', 'Foundations'].map(g => `<div class="cv-g" style="--gc:var(${GCOL[g]})"><i></i>${g}</div>${ch.convos.map((cv, k) => cv.g !== g ? '' :
+        `<button class="cv-btn${k === 0 ? ' on' : ''}" data-conv="${k}" style="--gc:var(${GCOL[g]})" aria-pressed="${k === 0}">${cv.t}<em>${cv.items.length}</em></button>`).join('')}`).join('');
+      const freq = {};
+      ch.convos.forEach(cv => cv.items.forEach(([n]) => { freq[n] = (freq[n] || 0) + 1; }));
+      const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const fc = ['--ms-yellow', '--ms-blue', '--ms-brand', '--ms-red', '--ms-green', '--ms-blue'];
+      return `<div class="vis-cap">Pick the priority closest to yours</div><div class="convo"><div class="cv-list" role="group" aria-label="Business priorities">${groups}</div><div id="cvSlot">${cvPanel(ch.convos[0])}</div></div>
+        <div class="vis-cap" style="margin-top:22px">The announcements that show up most across the ${ch.convos.length} priorities</div><div class="cv-bars">${top.map(([n, v], k) =>
+          `<div><div class="bar-l"><span>${n}</span><span>${v} of ${ch.convos.length}</span></div><div class="bar-t"><div class="bar-f" style="--w:${v / ch.convos.length * 100}%;--fc:var(${fc[k]})"></div></div></div>`).join('')}</div>`;
+    },
+
+    timeline: (ch) => `<div class="vis-cap">${ch.tlCap || 'Timeline'}</div><div class="tl">${ch.timeline.map((s, k) =>
+        `<div class="tl-s" style="--tc:var(${COLVAR[s[3]]});--k:${k}"><div class="tl-d">${k + 1}</div><time>${s[0]}</time><b>${s[1]}</b><small>${s[2]}</small></div>`).join('')}</div>
+      ${ch.road ? `<div class="vis-cap" style="margin-top:26px">${ch.roadCap}</div><div class="road">${ch.road.map((l, k) =>
+        `<div class="lane" style="--lc:var(${COLVAR[l.c]});--k:${k}"><div class="ln-l">${l.l}</div><h5>${l.t}</h5><ul>${l.items.map(it =>
+          `<li><button class="rd-i" data-go="${D.findIndex(x => x.id === it[3])}"><span><b>${it[0]}</b><small>${it[1]}</small></span><em class="rd-t rd-${it[2]}">${{ ga: 'GA', pv: 'Preview', tbc: 'GA TBA' }[it[2]]}</em></button></li>`).join('')}</ul></div>`).join('')}</div>
+        <p class="rd-note">${ch.roadNote}</p>` : ''}
+      ${ch.phases ? `<div class="vis-cap" style="margin-top:26px">Three steps to get started · select a step to jump to it</div><div class="phases">${ch.phases.map((p, k) =>
+        `<div class="phase" style="--pc:var(${COLVAR[p.c]});--k:${k}"><div class="ph-l">${p.l}</div><h5>${p.t}</h5><div class="ph-steps">${p.steps.map(s =>
+          `<button class="ph-step" data-jump="${s[2]}"><i>${s[0]}</i>${s[1]}</button>`).join('')}</div></div>`).join('')}</div>` : ''}`
+  };
+
+  /* ---------- Chapters ---------- */
+  const tile = (c, i) => `<button class="tile c-${c.color}" data-go="${i}"><span class="tn">${c.num}</span><span class="ta">→</span><span class="tt">${c.short}</span><span class="td">${c.tag}</span></button>`;
+  const TICK = [['Azure SRE Agent', 'blue'], ['Cobalt 200', 'blue'], ['Windows Server 2028', 'blue'], ['Microsoft-Decision-1.1', 'yellow'], ['MAI-Code-2', 'yellow'], ['MAI-Image-2.7', 'yellow'],
+    ['Copilot Home', 'green'], ['Cowork', 'green'], ['Copilot Code', 'green'], ['Autopilot', 'green'], ['Work IQ', 'red'], ['Fabric IQ', 'red'], ['Foundry IQ', 'red'], ['Web IQ', 'red'],
+    ['Dynamic Agent Risk', 'blue'], ['Agent ID', 'yellow'], ['Global Secure Access', 'yellow'], ['Microsoft Perception', 'red'], ['Codename MDASH', 'red'],
+    ['Azure HorizonDB', 'blue'], ['Azure Catalyst', 'brand'], ['ISOC in Defender', 'red'], ['Vulnerability shielding', 'red'], ['FinOps for AI', 'blue'], ['Office in Copilot', 'green']];
+
+  function renderHome() {
+    const ticks = TICK.map(t => `<span style="--c:var(${COLVAR[t[1]]})">${t[0]}</span>`).join('');
+    const word = 'Ignite'.split('').map(ch => `<span class="ch">${ch}</span>`).join('');
+    return `<section class="chapter home c-brand" data-i="0" aria-label="Home">
+      <div class="hero-wrap"><div class="wrap">
+        <div class="eyebrow"><span class="num" style="background:none;padding:0;min-width:0">${LOGO.replace('class="mslogo"', 'class="mslogo" width="22" height="22"')}</span>Microsoft Ignite 2026 · November 17–20 · San Francisco & online</div>
+        <h1 class="hero" aria-label="Ignite 2026"><span class="hw" aria-hidden="true">${word}</span> <span class="yr" aria-hidden="true">2026</span></h1>
+        <p class="lede">What Microsoft Ignite 2026 means for your organization, in ten chapters: the big picture, the Azure core, new models, Microsoft Copilot, Microsoft IQ, a new security stack for the agentic era, your priorities, and how to get started. Scroll to travel the storyline, or jump straight to a chapter.</p>
+        <div class="cta"><button class="btn primary" data-go="1">Begin the story →</button><a class="btn" href="${BON}" target="_blank" rel="noopener">Read the Book of News ↗</a></div>
+        <div class="legend">Status key: ${Object.keys(BADGE).map(k => badge(k)).join('')}<span class="lg-sep"></span>GA timing: <span class="ga ga-date inline"><i>GA</i><b>Date announced</b></span><span class="ga ga-tbc inline"><i>GA</i><b>Not yet announced</b></span></div>
+        <div class="cue" aria-hidden="true"><i></i>Scroll to begin</div>
+      </div></div>
+      <div class="hgal"><div class="hgal-cap"><div class="vis-cap" style="margin:0">The storyline · ${N - 1} chapters</div><h3>Ten chapters, one storyline.</h3></div>
+        <div class="tiles htrack">${D.slice(1).map((c, k) => tile(c, k + 1)).join('')}</div>
+        <div class="hgal-bar" aria-hidden="true"><i></i></div></div>
+      <div class="wrap"><div class="ticker rv" aria-hidden="true"><div class="tick-inner">${ticks}${ticks}</div></div></div>
+    </section>`;
+  }
+
+  function renderChapter(c, i) {
+    const iqCols = c.iq ? `<h3 class="sec-h rv">The four IQs</h3><div class="grid">${c.iq.map(q => `<article class="card iqcol rv c-${q.c}"><div class="card-top"><h4>${q.t}</h4></div><ul>${q.items.map(it => `<li><span>${it[0]}${it[2] ? '<small class="ga-mini">GA: not yet announced</small>' : ''}</span>${badge(it[1])}</li>`).join('')}</ul></article>`).join('')}</div>` : '';
+    const nextBtn = i < N - 1
+      ? `<button class="btn primary" data-go="${i + 1}">Next: ${D[i + 1].short} →</button><button class="btn" data-go="0">⌂ Home</button>`
+      : '';
+    const finale = i === N - 1 ? `<div class="finale rv"><div class="eyebrow" style="justify-content:center;display:flex">${LOGO.replace('class="mslogo"', 'class="mslogo" width="20" height="20"')} The end of the story</div>
+      <h3>Agents that are built, grounded, governed and defended.</h3>
+      <p>From Cobalt silicon to Perception's agent teams, Ignite 2026 sets out a complete stack for the agentic enterprise. Now let's make it work for your organization.</p>
+      <div class="cta"><button class="btn primary" data-go="0">⌂ Back to Home</button><a class="btn" href="${BON}" target="_blank" rel="noopener">Read the full Book of News ↗</a></div></div>` : '';
+    const src = /^\d/.test(c.num)
+      ? `Source: <a href="${BON}" target="_blank" rel="noopener">Microsoft Ignite 2026 Book of News</a>, section ${c.num}. Status labels reflect announcements at Ignite. GA timing reflects Microsoft's public statements as of 19 November 2026 and may change.`
+      : `Based on the Microsoft Ignite 2026 announcements. Read every announcement in the <a href="${BON}" target="_blank" rel="noopener">Book of News</a>.`;
+    return `<section class="chapter c-${c.color}" data-i="${i}" aria-label="${c.short}"><div class="ch-head"><div class="ch-big" aria-hidden="true"><span>${String(i).padStart(2, '0')}</span></div><div class="wrap">
+      <div class="eyebrow"><span class="num">${c.num}</span>${c.kicker}</div>
+      <h2 class="title">${c.title}</h2>
+      <p class="lede">${c.lede}</p>
+      <div class="cue" aria-hidden="true"><i></i>Scroll</div>
+      </div></div><div class="wrap">
+      <div class="stats">${c.stats.map(stat).join('')}</div>
+      ${c.you ? `<div class="you rv"><div class="vis-cap" style="margin:0">What it means for you</div><ul>${c.you.map(x => `<li>${x}</li>`).join('')}</ul></div>` : ''}
+      <div class="visual rv">${VIS[c.visual](c)}</div>
+      ${iqCols}
+      ${c.sections.map(s => `<h3 class="sec-h rv">${s.h}</h3><div class="grid">${s.cards.map(card).join('')}</div>`).join('')}
+      ${finale}
+      <div class="next-row rv">${nextBtn}</div>
+      <p class="src rv">${src}</p>
+    </div></section>`;
+  }
+
+  const stage = document.getElementById('stage');
+  stage.innerHTML = D.map((c, i) => i === 0 ? renderHome() : renderChapter(c, i)).join('');
+  const chapters = [...stage.querySelectorAll('.chapter')];
+  const G = window.gsap, ST = window.ScrollTrigger;
+  const HAS = !!(G && ST && window.ScrollToPlugin);
+  const MOTION = HAS && !reduced;
+  if (HAS) G.registerPlugin(ST, window.ScrollToPlugin);
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  /* Shared with the three.js module: F = float station index, orb = per-station orbit progress */
+  const CAM = window.__cam = { F: 0, orb: D.map(() => 0) };
+  const travel = D.map(() => 0);
+
+  /* ---------- Helpers ---------- */
+  function splitWords(el) {
+    [...el.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((w) => {
+          if (!w) return;
+          if (/^\s+$/.test(w)) { frag.appendChild(document.createTextNode(w)); return; }
+          const sp = document.createElement('span'); sp.className = 'w'; sp.textContent = w; frag.appendChild(sp);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1 && n.tagName !== 'BR') splitWords(n);
+    });
+    return [...el.querySelectorAll('.w')];
+  }
+  const fmtNum = (el, v) => { const dec = +el.dataset.dec || 0; return (el.dataset.pre || '') + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (el.dataset.suf || ''); };
+  function countUp(el) {
+    if (el.dataset.done) return;
+    el.dataset.done = 1;
+    const target = +el.dataset.count;
+    if (!MOTION) { el.textContent = fmtNum(el, target); return; }
+    const o = { v: 0 };
+    G.to(o, { v: target, duration: 1.8, ease: 'expo.out', onUpdate: () => { el.textContent = fmtNum(el, o.v); } });
+  }
+  const reveal = (el) => { el.classList.add('in'); el.querySelectorAll('[data-count]').forEach(countUp); };
+
+  /* ---------- Card spotlight + tilt ---------- */
+  if (!reduced) {
+    stage.addEventListener('pointermove', (e) => {
+      const el = e.target.closest('.card, .tile');
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.style.setProperty('--mx', (x * 100) + '%');
+      el.style.setProperty('--my', (y * 100) + '%');
+      if (el.classList.contains('card') && el.classList.contains('in')) el.style.transform = `perspective(900px) rotateX(${(0.5 - y) * 5}deg) rotateY(${(x - 0.5) * 6}deg) translateY(-2px)`;
+    });
+    stage.addEventListener('pointerout', (e) => {
+      const el = e.target.closest('.card');
+      if (el && !el.contains(e.relatedTarget) && el.classList.contains('in')) el.style.transform = '';
+    });
+  }
+
+  /* ---------- Storyline rail (driven continuously by scroll) ---------- */
+  const track = document.getElementById('track');
+  const svg = document.getElementById('storySvg');
+  const pBase = document.getElementById('pathBase'), pProg = document.getElementById('pathProg');
+  const comet = document.getElementById('comet'), cometGlow = document.getElementById('cometGlow');
+  const grad = document.getElementById('progGrad');
+  const nodes = D.map((c, i) => {
+    const b = document.createElement('button');
+    b.className = `node c-${c.color}` + (i === 0 ? ' homenode' : '');
+    b.dataset.go = i;
+    b.setAttribute('aria-label', i === 0 ? 'Home' : `Chapter ${c.num}: ${c.short}`);
+    b.innerHTML = `<span class="dot">${i === 0 ? LOGO : ''}</span><span class="lbl">${i === 0 ? '<small>START</small>Home' : `<small>${c.num}</small>${c.short}`}</span>`;
+    track.appendChild(b);
+    return b;
+  });
+  let pts = [], segLen = [], totalLen = 0, cometPos = 0, cometTarget = 0;
+  function setRail(F) {
+    if (!totalLen) return;
+    const i0 = clamp(Math.floor(F), 0, N - 1), i1 = Math.min(N - 1, i0 + 1), f = clamp(F - i0, 0, 1);
+    const L = segLen[i0] + (segLen[i1] - segLen[i0]) * f;
+    pProg.style.strokeDashoffset = totalLen - L;
+    cometTarget = L;
+  }
+  function layoutRail() {
+    const w = track.clientWidth, h = track.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    grad.setAttribute('x2', w);
+    const pad = Math.max(26, w * 0.04), amp = Math.min(12, h * 0.12), cy = h * 0.34;
+    pts = D.map((_, i) => [pad + i * (w - 2 * pad) / (N - 1), cy + (i % 2 ? amp : -amp)]);
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    segLen = [0];
+    const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    svg.appendChild(tmp);
+    for (let i = 1; i < N; i++) {
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], mx = (x0 + x1) / 2;
+      d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`;
+      tmp.setAttribute('d', d);
+      segLen.push(tmp.getTotalLength());
+    }
+    tmp.remove();
+    pBase.setAttribute('d', d); pProg.setAttribute('d', d);
+    totalLen = segLen[N - 1];
+    pProg.style.strokeDasharray = totalLen;
+    nodes.forEach((n, i) => { n.style.left = pts[i][0] + 'px'; n.style.top = pts[i][1] + 'px'; });
+    setRail(CAM.F); cometPos = cometTarget;
+  }
+  (function cometLoop() {
+    if (totalLen) {
+      cometPos += (cometTarget - cometPos) * (reduced ? 1 : 0.14);
+      const wobble = reduced ? 0 : Math.sin(performance.now() / 600) * 3;
+      const p = pBase.getPointAtLength(clamp(cometPos + wobble, 0, totalLen));
+      comet.setAttribute('cx', p.x); comet.setAttribute('cy', p.y);
+      cometGlow.setAttribute('cx', p.x); cometGlow.setAttribute('cy', p.y);
+    }
+    requestAnimationFrame(cometLoop);
+  })();
+  function setTravel(i, p) {
+    travel[i] = p;
+    CAM.F = travel.reduce((a, b) => a + b, 0);
+    setRail(CAM.F);
+  }
+
+  /* ---------- Active chapter + navigation ---------- */
+  let cur = -1;
+  const visited = new Set();
+  const chapInd = document.getElementById('chapInd');
+  const prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn');
+  const homeBtn = document.querySelector('.home-btn');
+  function setActive(i) {
+    if (i === cur) return;
+    cur = i; window.__storyIndex = i;
+    visited.add(i);
+    const c = D[i];
+    chapInd.className = `chap-ind c-${c.color}`;
+    chapInd.querySelector('span').textContent = i === 0 ? 'Prologue' : `Chapter ${i} of ${N - 1} · ${c.short}`;
+    document.title = (i === 0 ? '' : c.short + ' · ') + 'Microsoft Ignite 2026 · GSAP Storyboard';
+    prevBtn.disabled = i === 0; nextBtn.disabled = i === N - 1;
+    homeBtn.classList.toggle('on', i === 0);
+    nodes.forEach((n, k) => {
+      n.classList.toggle('active', k === i);
+      n.classList.toggle('visited', visited.has(k) && k !== i);
+      n.setAttribute('aria-current', k === i ? 'step' : 'false');
+    });
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + c.id); } catch (_) {}
+    window.dispatchEvent(new CustomEvent('story:goto', { detail: { index: i } }));
+  }
+  const yOf = (i) => i === 0 ? 0 : Math.round(chapters[i].getBoundingClientRect().top + window.scrollY);
+  function scrollToY(y, dur) {
+    if (MOTION) G.to(window, { scrollTo: { y: Math.max(0, y), autoKill: false }, duration: dur, ease: 'power3.inOut', overwrite: true });
+    else window.scrollTo(0, Math.max(0, y));
+  }
+  function go(i, instant = false) {
+    i = clamp(i | 0, 0, N - 1);
+    if (instant) { window.scrollTo(0, yOf(i)); return; }
+    scrollToY(yOf(i), clamp(.9 + Math.abs(i - Math.max(cur, 0)) * .22, .9, 2.6));
+  }
+  window.storyGo = go;
+  document.addEventListener('click', (e) => {
+    const jb = e.target.closest('[data-jump]');
+    if (jb) {
+      const el = document.getElementById(jb.dataset.jump);
+      if (el) {
+        scrollToY(el.getBoundingClientRect().top + window.scrollY - (innerHeight - el.offsetHeight) / 2, 1.1);
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      }
+      return;
+    }
+    const cvb = e.target.closest('[data-conv]');
+    if (cvb) {
+      const ch = D[idx('conversations')], k = +cvb.dataset.conv;
+      cvb.parentElement.querySelectorAll('.cv-btn').forEach(b => { const on = b === cvb; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+      document.getElementById('cvSlot').innerHTML = cvPanel(ch.convos[k]);
+      if (MOTION) G.from('#cvSlot .cv-chip', { y: 14, autoAlpha: 0, stagger: .04, duration: .5, ease: 'power2.out' });
+      window.dispatchEvent(new CustomEvent('story:conv', { detail: { index: k } }));
+      return;
+    }
+    const t = e.target.closest('[data-go]');
+    if (t) { e.preventDefault(); go(+t.dataset.go); }
+  });
+  prevBtn.addEventListener('click', () => go(cur - 1));
+  nextBtn.addEventListener('click', () => go(cur + 1));
+  addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(cur + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+  });
+  const fromHash = () => Math.max(0, D.findIndex(c => '#' + c.id === location.hash));
+  addEventListener('hashchange', () => go(fromHash()));
+
+  /* ---------- GSAP ScrollTrigger choreography ---------- */
+  let tlHero = null;
+  if (MOTION) {
+    // Pinned sections are created first, in document order, so later triggers include their pin spacing.
+    const gal = stage.querySelector('.hgal'), htrack = stage.querySelector('.htrack');
+    const mm = G.matchMedia();
+    mm.add('(min-width: 901px)', () => {
+      const dist = () => Math.max(0, htrack.scrollWidth - window.innerWidth);
+      const tw = G.to(htrack, { x: () => -dist(), ease: 'none',
+        scrollTrigger: { trigger: gal, start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 1, invalidateOnRefresh: true, anticipatePin: 1, refreshPriority: 1 } });
+      htrack.querySelectorAll('.tile').forEach((t) => {
+        G.fromTo(t, { rotateY: -40, xPercent: 20, autoAlpha: .1, transformPerspective: 900, transformOrigin: '0% 50%' },
+          { rotateY: 0, xPercent: 0, autoAlpha: 1, ease: 'power2.out', scrollTrigger: { trigger: t, containerAnimation: tw, start: 'left 98%', end: 'left 62%', scrub: true } });
+      });
+      G.fromTo(gal.querySelector('.hgal-bar i'), { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: gal, start: 'top top', end: () => '+=' + dist(), scrub: true, invalidateOnRefresh: true } });
+    });
+    mm.add('(max-width: 900px)', () => {
+      const tiles = htrack.querySelectorAll('.tile');
+      G.set(tiles, { autoAlpha: 0, y: 40 });
+      ST.batch(tiles, { start: 'top 92%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, stagger: .06, duration: .7, ease: 'power3.out' }) });
+    });
+
+    chapters.forEach((ch, i) => {
+      if (!i) return;
+      const head = ch.querySelector('.ch-head'), big = head.querySelector('.ch-big'), hw = head.querySelector('.wrap');
+      const words = splitWords(head.querySelector('.title'));
+      // Title plate assembles as the chapter scrolls into view (scrubbed).
+      G.timeline({ scrollTrigger: { trigger: ch, start: 'top 82%', end: 'top 6%', scrub: .7 } })
+        .fromTo(big.firstElementChild, { xPercent: 38, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power2.out', duration: 1 }, 0)
+        .fromTo(head.querySelector('.eyebrow'), { x: -80, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: .45 }, 0)
+        .fromTo(words, { autoAlpha: .05, yPercent: 70, rotateX: -70, transformPerspective: 600, transformOrigin: '50% 100%' },
+          { autoAlpha: 1, yPercent: 0, rotateX: 0, stagger: .06, duration: .5, ease: 'power3.out' }, .08)
+        .fromTo(head.querySelectorAll('.lede, .cue'), { y: 44, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .1, duration: .4 }, .45);
+      // Then the plate pins while the 3D scene orbits its station.
+      G.timeline({ scrollTrigger: { trigger: head, start: 'top top', end: '+=65%', pin: true, scrub: .8, anticipatePin: 1,
+        onUpdate: (st) => { CAM.orb[i] = st.progress; }, onRefresh: (st) => { CAM.orb[i] = st.progress; } } })
+        .to(big, { scale: 1.24, xPercent: -6, rotate: -3, ease: 'none' }, 0)
+        .to(hw, { y: -30, ease: 'none' }, 0);
+    });
+
+    // Home hero: letters assemble after the intro, then drift away as you scroll.
+    const hwrap = stage.querySelector('.hero-wrap');
+    tlHero = G.timeline({ paused: true })
+      .from(hwrap.querySelector('.eyebrow'), { y: 24, autoAlpha: 0, duration: .7, ease: 'power3.out' })
+      .from(hwrap.querySelectorAll('.hero .ch'), { yPercent: 115, rotateX: -85, autoAlpha: 0, transformOrigin: '50% 100%', stagger: .055, duration: 1.1, ease: 'back.out(1.7)' }, '<.1')
+      .from(hwrap.querySelector('.hero .yr'), { scale: .35, autoAlpha: 0, filter: 'blur(14px)', duration: 1.2, ease: 'expo.out', transformOrigin: '0% 70%', clearProps: 'filter' }, '<.4')
+      .from(hwrap.querySelectorAll('.lede, .cta, .legend, .cue'), { y: 34, autoAlpha: 0, stagger: .1, duration: .8, ease: 'power3.out' }, '<.25');
+    G.to(hwrap.querySelector('.wrap'), { yPercent: -16, autoAlpha: .12, scale: .96, transformOrigin: '0% 50%', ease: 'none',
+      scrollTrigger: { trigger: hwrap, start: 'top top', end: 'bottom 12%', scrub: true } });
+
+    // Staggered 3D flip-in for every card, stat, visual and heading.
+    const rvEls = [...stage.querySelectorAll('.rv')];
+    G.set(rvEls, { autoAlpha: 0, y: 60 });
+    G.set(stage.querySelectorAll('.card.rv, .stat.rv'), { rotateX: -26, scale: .95, transformPerspective: 1100, transformOrigin: '50% 0%' });
+    ST.batch(rvEls, { start: 'top 90%', once: true, interval: .08, batchMax: 8, onEnter: (els) => {
+      G.to(els, { autoAlpha: 1, y: 0, rotateX: 0, scale: 1, duration: 1.05, ease: 'power3.out', stagger: .09, overwrite: true, clearProps: 'transform' });
+      els.forEach(reveal);
+    } });
+    stage.querySelectorAll('.sec-h').forEach((h) => G.fromTo(h, { '--ln': 0 }, { '--ln': 1, ease: 'none', scrollTrigger: { trigger: h, start: 'top 92%', end: 'top 58%', scrub: .5 } }));
+    G.fromTo('.sprog i', { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: .3 } });
+  } else {
+    stage.querySelectorAll('.rv').forEach(reveal);
+  }
+
+  if (HAS) {
+    ST.create({ trigger: chapters[0], start: 'top top', end: 'bottom top', onUpdate: (st) => { CAM.orb[0] = st.progress; } });
+    chapters.forEach((ch, i) => {
+      if (i) ST.create({ trigger: ch, start: 'top bottom', end: 'top top', onUpdate: (st) => setTravel(i, st.progress), onRefresh: (st) => setTravel(i, st.progress) });
+      ST.create({ trigger: ch, start: 'top 55%', end: 'bottom 55%', onToggle: (st) => { if (st.isActive) setActive(i); } });
+    });
+  } else {
+    const upd = () => {
+      const mid = innerHeight * .55;
+      let a = 0;
+      chapters.forEach((c, k) => { if (c.getBoundingClientRect().top < mid) a = k; });
+      CAM.F = a; setRail(a); setActive(a);
+    };
+    addEventListener('scroll', upd, { passive: true });
+    requestAnimationFrame(upd);
+  }
+
+  addEventListener('resize', layoutRail);
+  if (window.ResizeObserver) new ResizeObserver(layoutRail).observe(track);
+  layoutRail();
+  const startAt = fromHash();
+  if (HAS) ST.refresh();
+  window.scrollTo(0, yOf(startAt));
+  if (HAS) ST.update();
+  setActive(startAt);
+
+  /* ---------- Intro ---------- */
+  const intro = document.getElementById('intro');
+  let introDone = false;
+  const endIntro = () => {
+    if (introDone) return;
+    introDone = true;
+    if (MOTION) {
+      G.timeline({ onComplete: () => intro.classList.add('done') })
+        .to(intro.querySelector('.intro-in'), { scale: .86, autoAlpha: 0, duration: .5, ease: 'power2.in' })
+        .to(intro, { clipPath: 'circle(0% at 50% 50%)', duration: 1.1, ease: 'expo.inOut' }, '<.15');
+      G.delayedCall(.6, () => tlHero.play());
+    } else intro.classList.add('done');
+  };
+  intro.addEventListener('click', endIntro);
+  setTimeout(endIntro, reduced ? 200 : 1700);
+})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+try {
+const DARK = document.documentElement.dataset.theme === 'dark';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const css = getComputedStyle(document.documentElement);
+const col = (v, f = '#808080') => new THREE.Color(((css.getPropertyValue(v) || '').trim()) || f);
+const C = { r: col('--ms-red'), g: col('--ms-green'), b: col('--ms-blue'), y: col('--ms-yellow'), brand: col('--ms-brand'), gray: col('--ms-gray'), bg: col('--cp-bg'), text: col('--cp-text'), soft: col('--cp-text-soft') };
+const MS4 = [C.r, C.g, C.b, C.y];
+const BLEND = DARK ? THREE.AdditiveBlending : THREE.NormalBlending;
+const rand = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const easeOutBack = (x) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const easeInOutCubic = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+/* ---------- Renderer / scene ---------- */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+const PR = Math.min(window.devicePixelRatio || 1, 2);
+renderer.setPixelRatio(PR);
+renderer.setSize(innerWidth, innerHeight, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
+renderer.setClearColor(0x000000, 0);
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(C.bg, 0.011);
+const cam = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 1000);
+cam.position.set(0, 20, 90);
+scene.add(new THREE.HemisphereLight(0xffffff, C.bg, DARK ? 1.1 : 1.6));
+const key = new THREE.DirectionalLight(0xffffff, DARK ? 2.3 : 2.4); key.position.set(6, 10, 8); scene.add(key);
+const rimL = new THREE.DirectionalLight(C.b, 1.6); rimL.position.set(-8, -3, -10); scene.add(rimL);
+
+/* ---------- Shared helpers ---------- */
+const GLOW = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.22, 'rgba(255,255,255,.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+})();
+const uTime = { value: 0 };
+function pointsMat(size, opacity = 1) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime, uSize: { value: size * PR }, uTex: { value: GLOW }, uOpacity: { value: opacity } },
+    vertexShader: `attribute vec3 aColor; attribute float aSeed; uniform float uTime; uniform float uSize;
+      varying vec3 vC; varying float vA;
+      void main(){
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mv;
+        float tw = .7 + .3 * sin(uTime * (1. + aSeed * 2.) + aSeed * 40.);
+        gl_PointSize = min(uSize * (.6 + aSeed * .8) * (120. / max(-mv.z, .1)) * tw, 56.0);
+        vC = aColor; vA = tw * (1. - smoothstep(40., 260., -mv.z));
+      }`,
+    fragmentShader: `uniform sampler2D uTex; uniform float uOpacity; varying vec3 vC; varying float vA;
+      void main(){
+        vec4 t = texture2D(uTex, gl_PointCoord);
+        gl_FragColor = vec4(vC, t.a * vA * uOpacity);
+        #include <colorspace_fragment>
+      }`,
+    transparent: true, depthWrite: false, blending: BLEND
+  });
+}
+function makePoints(count, size, opacity = 1) {
+  const g = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3), colA = new Float32Array(count * 3), seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) seed[i] = Math.random();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aColor', new THREE.BufferAttribute(colA, 3));
+  g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  const p = new THREE.Points(g, pointsMat(size, opacity));
+  p.frustumCulled = false;
+  p.setC = (i, c) => { colA[i * 3] = c.r; colA[i * 3 + 1] = c.g; colA[i * 3 + 2] = c.b; };
+  p.setP = (i, x, y, z) => { pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; };
+  p.dirty = () => { g.attributes.position.needsUpdate = true; };
+  p.pos = pos;
+  return p;
+}
+function sprite(color, s, o = .5) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color, transparent: true, opacity: o, depthWrite: false, blending: BLEND, fog: false }));
+  sp.scale.set(s, s, 1); return sp;
+}
+const std = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .3, metalness: .15, emissive: c, emissiveIntensity: DARK ? .3 : .12, ...o });
+const at = (o, x, y, z) => { o.position.set(x, y, z); return o; };
+const basic = (c, o = 1) => new THREE.MeshBasicMaterial({ color: c, transparent: o < 1, opacity: o, depthWrite: o >= 1 });
+const hexRing = (r, tube, c, o = 1) => new THREE.Mesh(new THREE.TorusGeometry(r, tube, 6, 6), basic(c, o));
+const ring = (r, tube, c, o = 1, seg = 128) => new THREE.Mesh(new THREE.TorusGeometry(r, tube, 6, seg), basic(c, o));
+
+/* ---------- Stations ---------- */
+const POS = [[0, 0, 0], [-65, 12, -70], [60, -4, -140], [0, -14, -215], [-70, 6, -285], [-10, 22, -360], [70, 0, -430], [10, -18, -505], [-60, 4, -575], [10, 16, -650], [75, -6, -725]].map(p => new THREE.Vector3(...p));
+const S = [];
+let T = 0;
+function station(i, build) {
+  const g = new THREE.Group(); g.position.copy(POS[i]); scene.add(g);
+  const s = { i, g, pos: POS[i], update: () => {}, arrive: null };
+  build(s, g); S[i] = s;
+}
+
+/* 0 · HOME — the Microsoft logo assembling itself */
+station(0, (s, g) => {
+  const h = 2.1, r = .16, sh = new THREE.Shape();
+  sh.moveTo(-h + r, -h); sh.lineTo(h - r, -h); sh.quadraticCurveTo(h, -h, h, -h + r); sh.lineTo(h, h - r); sh.quadraticCurveTo(h, h, h - r, h);
+  sh.lineTo(-h + r, h); sh.quadraticCurveTo(-h, h, -h, h - r); sh.lineTo(-h, -h + r); sh.quadraticCurveTo(-h, -h, -h + r, -h);
+  const geo = new THREE.ExtrudeGeometry(sh, { depth: .9, bevelEnabled: true, bevelThickness: .22, bevelSize: .14, bevelSegments: 4, curveSegments: 4 });
+  geo.center();
+  const logo = new THREE.Group(); g.add(logo);
+  const sq = [[C.r, -2.3, 2.3], [C.g, 2.3, 2.3], [C.b, -2.3, -2.3], [C.y, 2.3, -2.3]].map(([c, x, y], k) => {
+    const m = new THREE.Mesh(geo, std(c, { roughness: .22, metalness: .08 }));
+    m.userData = { home: new THREE.Vector3(x, y, 0), from: new THREE.Vector3(x, y, 0), rf: new THREE.Euler(), k };
+    logo.add(m); return m;
+  });
+  const glow = sprite(C.brand, 30, DARK ? .32 : .2); glow.position.z = -4; g.add(glow);
+  const halo = makePoints(1100, 1.1, DARK ? .9 : .8);
+  for (let i = 0; i < 1100; i++) {
+    const a = rand(Math.PI * 2), rr = rand(7.2, 11) + Math.pow(Math.random(), 3) * 5;
+    halo.setP(i, Math.cos(a) * rr, Math.sin(a) * rr, rand(-1.5, 1.5)); halo.setC(i, MS4[(((a / (Math.PI * 2)) * 4) | 0) % 4]);
+  }
+  halo.dirty(); g.add(halo);
+  const orbit = new THREE.Group(); g.add(orbit);
+  MS4.forEach((c, k) => { const o = ring(8 + k * .9, .025, c, DARK ? .55 : .7); o.rotation.set(rand(-.5, .5), rand(-.5, .5), 0); orbit.add(o); });
+  let t0 = -1;
+  s.arrive = (delay) => {
+    sq.forEach(m => {
+      const a = rand(Math.PI * 2), u = m.userData;
+      u.from.set(Math.cos(a) * rand(14, 20), Math.sin(a) * rand(9, 13), rand(-14, 6));
+      u.rf.set(rand(-4, 4), rand(-4, 4), rand(-3, 3));
+    });
+    t0 = T + delay;
+  };
+  s.update = (t) => {
+    for (const m of sq) {
+      const u = m.userData, k = t0 < 0 ? 1 : clamp((t - t0 - u.k * .14) / 1.25, 0, 1), e = easeOutBack(k);
+      m.position.lerpVectors(u.from, u.home, e);
+      m.rotation.set(u.rf.x * (1 - e), u.rf.y * (1 - e), u.rf.z * (1 - e));
+    }
+    logo.rotation.y = Math.sin(t * .45) * .32; logo.rotation.x = Math.sin(t * .31) * .12 - .04;
+    halo.rotation.z = t * .06; orbit.rotation.z = -t * .05; orbit.rotation.y = Math.sin(t * .2) * .3;
+    glow.material.opacity = (DARK ? .3 : .18) + Math.sin(t * 1.4) * .05;
+  };
+});
+
+/* 2 · CORE — a rippling field of compute */
+station(2, (s, g) => {
+  const n = 16, spc = 1.15, geo = new THREE.BoxGeometry(.84, 1, .84); geo.translate(0, .5, 0);
+  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .35, metalness: .25 }), n * n);
+  const plate = new THREE.Group(); plate.rotation.x = .6; plate.position.y = -1.5; g.add(plate); plate.add(mesh);
+  const grid = new THREE.GridHelper(28, 28, C.b, C.b); grid.material.transparent = true; grid.material.opacity = DARK ? .22 : .3; plate.add(grid);
+  const edge = ring(13, .04, C.b, .6); edge.rotation.x = Math.PI / 2; plate.add(edge);
+  const sparks = makePoints(320, 1.2); const sd = [];
+  for (let i = 0; i < 320; i++) { sd.push([rand(-10, 10), rand(-10, 10), Math.random(), rand(.08, .2)]); sparks.setC(i, Math.random() < .7 ? C.b : pick([C.y, C.g, C.brand])); }
+  plate.add(sparks);
+  plate.add(at(sprite(C.b, 26, DARK ? .25 : .14), 0, 3, 0));
+  const dummy = new THREE.Object3D(), tc = new THREE.Color();
+  s.update = (t) => {
+    let k = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const x = (i - (n - 1) / 2) * spc, z = (j - (n - 1) / 2) * spc, d = Math.hypot(x, z);
+      const w = .5 + .5 * Math.sin(d * .75 - t * 2.4), hh = .25 + w * 3.4 * (1 - d / 22);
+      dummy.position.set(x, 0, z); dummy.scale.set(1, hh, 1); dummy.updateMatrix(); mesh.setMatrixAt(k, dummy.matrix);
+      tc.copy(C.brand).lerp(C.b, w); if (w > .9) tc.lerp(C.y, (w - .9) * 8);
+      mesh.setColorAt(k++, tc);
+    }
+    mesh.instanceMatrix.needsUpdate = true; mesh.instanceColor.needsUpdate = true;
+    for (let i = 0; i < 320; i++) { const q = sd[i]; sparks.setP(i, q[0], ((q[2] + t * q[3]) % 1) * 9, q[1]); }
+    sparks.dirty();
+    plate.rotation.y = t * .1;
+  };
+});
+
+/* 3 · NEW MODELS — a neural net firing decisions */
+station(3, (s, g) => {
+  const L = [5, 8, 10, 8, 4], LC = [C.b, C.g, C.y, C.y, C.r], nodes = [], nc = [], ls = [];
+  L.forEach((c, li) => { ls.push(nodes.length); for (let k = 0; k < c; k++) { nodes.push(new THREE.Vector3((li - 2) * 4.4, (k - (c - 1) / 2) * 1.55, rand(-.6, .6))); nc.push(LC[li]); } });
+  const edges = [], out = nodes.map(() => []);
+  for (let li = 0; li < L.length - 1; li++) for (let a = 0; a < L[li]; a++) for (let b = 0; b < L[li + 1]; b++) {
+    const A = ls[li] + a, B = ls[li + 1] + b; out[A].push(edges.length); edges.push([A, B]);
+  }
+  const net = new THREE.Group(); g.add(net);
+  const lp = new Float32Array(edges.length * 6);
+  edges.forEach(([a, b], k) => { nodes[a].toArray(lp, k * 6); nodes[b].toArray(lp, k * 6 + 3); });
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lp, 3));
+  net.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: C.y, transparent: true, opacity: DARK ? .16 : .38 })));
+  const ball = new THREE.InstancedMesh(new THREE.SphereGeometry(.34, 20, 14), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .25, metalness: .1, emissive: C.y, emissiveIntensity: DARK ? .15 : 0 }), nodes.length);
+  nodes.forEach((p, k) => ball.setColorAt(k, nc[k])); net.add(ball);
+  net.add(at(sprite(C.y, 28, DARK ? .2 : .14), 0, 0, -3));
+  const flash = new Float32Array(nodes.length), P = 80, pulses = [], pts = makePoints(P, 1.9);
+  const first = () => out[ls[0] + ((Math.random() * L[0]) | 0)][(Math.random() * L[1]) | 0];
+  for (let i = 0; i < P; i++) { pulses.push({ e: (Math.random() * edges.length) | 0, p: Math.random(), sp: rand(.7, 1.5) }); pts.setC(i, Math.random() < .75 ? C.y : pick(MS4)); }
+  net.add(pts);
+  const dummy = new THREE.Object3D(), tv = new THREE.Vector3();
+  s.update = (t, dt) => {
+    for (let i = 0; i < P; i++) {
+      const q = pulses[i]; q.p += dt * q.sp;
+      if (q.p >= 1) { const B = edges[q.e][1]; flash[B] = 1; q.e = out[B].length ? pick(out[B]) : first(); q.p = 0; }
+      const [a, b] = edges[q.e]; tv.lerpVectors(nodes[a], nodes[b], q.p); pts.setP(i, tv.x, tv.y, tv.z);
+    }
+    pts.dirty();
+    nodes.forEach((p, k) => { flash[k] = Math.max(0, flash[k] - dt * 2.2); dummy.position.copy(p); dummy.scale.setScalar(1 + flash[k] * .9); dummy.updateMatrix(); ball.setMatrixAt(k, dummy.matrix); });
+    ball.instanceMatrix.needsUpdate = true;
+    net.rotation.y = Math.sin(t * .25) * .45; net.rotation.x = Math.sin(t * .18) * .08;
+  };
+});
+
+/* 4 · COPILOT — a living multi-colour blob */
+station(4, (s, g) => {
+  const NOISE = `vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float snoise(vec3 v){
+ const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,1.0,2.0);
+ vec3 i=floor(v+dot(v,C.yyy)); vec3 x0=v-i+dot(i,C.xxx);
+ vec3 g=step(x0.yzx,x0.xyz); vec3 l=1.0-g; vec3 i1=min(g.xyz,l.zxy); vec3 i2=max(g.xyz,l.zxy);
+ vec3 x1=x0-i1+C.xxx; vec3 x2=x0-i2+C.yyy; vec3 x3=x0-D.yyy;
+ i=mod289(i);
+ vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+ float n_=0.142857142857; vec3 ns=n_*D.wyz-D.xzx;
+ vec4 j=p-49.0*floor(p*ns.z*ns.z); vec4 x_=floor(j*ns.z); vec4 y_=floor(j-7.0*x_);
+ vec4 x=x_*ns.x+ns.yyyy; vec4 y=y_*ns.x+ns.yyyy; vec4 h=1.0-abs(x)-abs(y);
+ vec4 b0=vec4(x.xy,y.xy); vec4 b1=vec4(x.zw,y.zw);
+ vec4 s0=floor(b0)*2.0+1.0; vec4 s1=floor(b1)*2.0+1.0; vec4 sh=-step(h,vec4(0.0));
+ vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy; vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+ vec3 p0=vec3(a0.xy,h.x); vec3 p1=vec3(a0.zw,h.y); vec3 p2=vec3(a1.xy,h.z); vec3 p3=vec3(a1.zw,h.w);
+ vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+ p0*=norm.x; p1*=norm.y; p2*=norm.z; p3*=norm.w;
+ vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
+ return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+}`;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTime, uR: { value: C.r }, uG: { value: C.g }, uB: { value: C.b }, uY: { value: C.y }, uDark: { value: DARK ? 1 : 0 } },
+    vertexShader: NOISE + `
+      uniform float uTime; varying vec3 vN; varying vec3 vP; varying vec3 vV; varying float vD;
+      void main(){
+        vec3 n = normalize(position);
+        float d = snoise(n * 1.3 + uTime * .32) * .6 + snoise(n * 3.2 - uTime * .5) * .16;
+        vec3 p = position + normal * d;
+        vD = d; vP = n;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        vV = -mv.xyz; vN = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `uniform vec3 uR; uniform vec3 uG; uniform vec3 uB; uniform vec3 uY; uniform float uDark;
+      varying vec3 vN; varying vec3 vP; varying vec3 vV; varying float vD;
+      void main(){
+        float x = vP.x * .5 + .5, y = vP.y * .5 + .5;
+        vec3 top = mix(uR, uG, smoothstep(.2, .8, x));
+        vec3 bot = mix(uB, uY, smoothstep(.2, .8, x));
+        vec3 c = mix(bot, top, smoothstep(.25, .75, y));
+        vec3 N = normalize(vN), V = normalize(vV);
+        float fr = pow(1. - max(dot(N, V), 0.), 2.4);
+        float l = .6 + .5 * max(dot(N, normalize(vec3(.4, .7, .6))), 0.);
+        c = c * l * (.92 + vD * .5) + fr * mix(.35, .8, uDark);
+        gl_FragColor = vec4(c, 1.0);
+        #include <colorspace_fragment>
+      }`
+  });
+  const blob = new THREE.Mesh(new THREE.IcosahedronGeometry(3.9, 40), mat); g.add(blob);
+  g.add(at(sprite(C.g, 24, DARK ? .28 : .16), 0, 0, -3));
+  const sats = [];
+  for (let k = 0; k < 6; k++) {
+    const piv = new THREE.Group(); piv.rotation.set(rand(-1, 1), rand(Math.PI), rand(-.6, .6)); g.add(piv);
+    const c = MS4[k % 4], m = new THREE.Mesh(new THREE.SphereGeometry(.32, 20, 14), std(c));
+    m.add(sprite(c, 2.4, DARK ? .7 : .45));
+    const trail = ring(6.4 + k * .55, .015, c, DARK ? .35 : .5); trail.rotation.x = Math.PI / 2; piv.add(trail);
+    piv.add(m); sats.push({ m, r: 6.4 + k * .55, sp: rand(.35, .8) * (k % 2 ? 1 : -1), ph: rand(7) });
+  }
+  const dust = makePoints(600, 1, .8);
+  for (let i = 0; i < 600; i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(rand(5.5, 15)); dust.setP(i, v.x, v.y, v.z); dust.setC(i, pick(MS4)); }
+  dust.dirty(); g.add(dust);
+  s.update = (t) => {
+    blob.rotation.y = t * .18; blob.rotation.z = Math.sin(t * .3) * .2;
+    const sc = 1 + Math.sin(t * 1.6) * .025; blob.scale.setScalar(sc);
+    sats.forEach(q => { const a = q.ph + t * q.sp; q.m.position.set(Math.cos(a) * q.r, 0, Math.sin(a) * q.r); });
+    dust.rotation.y = -t * .04; dust.rotation.x = t * .02;
+  };
+});
+
+
+/* 5 · MICROSOFT IQ — four rings of context feeding one core */
+station(5, (s, g) => {
+  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(2.1, 1), std(C.r, { flatShading: true }));
+  const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(3, 1), new THREE.MeshBasicMaterial({ color: C.r, wireframe: true, transparent: true, opacity: DARK ? .45 : .6 }));
+  g.add(core, wire, at(sprite(C.r, 22, DARK ? .3 : .16), 0, 0, -2));
+  const R = [5, 6.3, 7.6, 8.9], rings = [], PER = 46, stream = makePoints(R.length * PER, 1.35), ml = new THREE.Vector3();
+  R.forEach((r, k) => {
+    const c = MS4[k], piv = new THREE.Group(); piv.rotation.set(rand(-1.25, 1.25), rand(-.9, .9), rand(-.5, .5)); g.add(piv);
+    piv.add(ring(r, .05, c, DARK ? .8 : .95));
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(.44, 22, 16), std(c)); moon.add(sprite(c, 3.2, DARK ? .7 : .4)); piv.add(moon);
+    rings.push({ piv, moon, r, sp: rand(.4, .75) * (k % 2 ? 1 : -1), ph: rand(7), spin: rand(.06, .14) * (k % 2 ? -1 : 1), by: piv.rotation.y });
+    for (let i = 0; i < PER; i++) stream.setC(k * PER + i, c);
+  });
+  g.add(stream);
+  s.update = (t) => {
+    core.rotation.set(t * .3, t * .4, 0); wire.rotation.set(-t * .2, -t * .26, 0); core.scale.setScalar(1 + Math.sin(t * 2.2) * .05);
+    rings.forEach((q, k) => {
+      const a = q.ph + t * q.sp; q.moon.position.set(Math.cos(a) * q.r, Math.sin(a) * q.r, 0);
+      q.piv.rotation.y = q.by + t * q.spin; q.piv.updateMatrix(); ml.copy(q.moon.position).applyMatrix4(q.piv.matrix);
+      for (let i = 0; i < PER; i++) {
+        const f = (i / PER + t * .4) % 1, w = Math.sin(f * Math.PI) * 1.1;
+        stream.setP(k * PER + i, ml.x * (1 - f) + Math.sin(f * 9 + k) * w * .3, ml.y * (1 - f) + w, ml.z * (1 - f));
+      }
+    });
+    stream.dirty();
+  };
+});
+
+/* 6 · AGENT 365 — every agent orbiting a governed hub, coloured by risk */
+station(6, (s, g) => {
+  const hub = new THREE.Mesh(new THREE.OctahedronGeometry(1.9, 0), std(C.brand, { flatShading: true }));
+  const hubW = new THREE.Mesh(new THREE.OctahedronGeometry(2.8, 0), new THREE.MeshBasicMaterial({ color: C.b, wireframe: true, transparent: true, opacity: .6 }));
+  g.add(hub, hubW, at(sprite(C.b, 24, DARK ? .3 : .16), 0, 0, -2));
+  const swarm = new THREE.Group(); swarm.rotation.x = .3; g.add(swarm);
+  const NA = 110, ag = [], am = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(.34, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3, flatShading: true }), NA);
+  const lp = new Float32Array(NA * 6), lc = new Float32Array(NA * 6);
+  for (let i = 0; i < NA; i++) {
+    const x = Math.random(), lvl = x < .68 ? 0 : x < .9 ? 1 : 2, c = [C.g, C.y, C.r][lvl], r = rand(4.5, 11.5);
+    ag.push({ r, inc: rand(-.9, .9), node: rand(Math.PI * 2), ph: rand(7), sp: rand(.5, 1.2) * (Math.random() < .5 ? -1 : 1) * 3 / r, lvl });
+    am.setColorAt(i, c);
+    const dim = c.clone().multiplyScalar(DARK ? .15 : .6);
+    lc.set([dim.r, dim.g, dim.b, c.r, c.g, c.b], i * 6);
+  }
+  swarm.add(am);
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(lp, 3)); lg.setAttribute('color', new THREE.BufferAttribute(lc, 3));
+  const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: DARK ? .35 : .45, depthWrite: false })); lines.frustumCulled = false; swarm.add(lines);
+  const plane = new THREE.Group(); plane.rotation.x = -1.25; g.add(plane);
+  const scan = new THREE.Mesh(new THREE.RingGeometry(.97, 1, 120), basic(C.b, .6)); scan.material.side = THREE.DoubleSide; plane.add(scan);
+  plane.add(ring(12.6, .05, C.b, .55));
+  const dummy = new THREE.Object3D();
+  s.update = (t) => {
+    hub.rotation.set(0, t * .5, Math.sin(t * .7) * .2); hubW.rotation.set(t * .15, -t * .3, 0);
+    for (let i = 0; i < NA; i++) {
+      const q = ag[i], a = q.ph + t * q.sp, x0 = Math.cos(a) * q.r, z0 = Math.sin(a) * q.r;
+      const y1 = -z0 * Math.sin(q.inc), z1 = z0 * Math.cos(q.inc);
+      const x = x0 * Math.cos(q.node) + z1 * Math.sin(q.node), z = -x0 * Math.sin(q.node) + z1 * Math.cos(q.node);
+      dummy.position.set(x, y1, z); dummy.rotation.set(t * 2 + q.ph, t * 1.4, 0);
+      dummy.scale.setScalar(q.lvl === 2 ? 1.25 + Math.sin(t * 6 + q.ph) * .45 : 1); dummy.updateMatrix(); am.setMatrixAt(i, dummy.matrix);
+      lp[i * 6 + 3] = x; lp[i * 6 + 4] = y1; lp[i * 6 + 5] = z;
+    }
+    am.instanceMatrix.needsUpdate = true; lg.attributes.position.needsUpdate = true;
+    const k = (t * .32) % 1; scan.scale.setScalar(2 + k * 11); scan.material.opacity = (1 - k) * .75;
+  };
+});
+
+/* 7 · ENTRA — identity at the centre of Zero Trust layers */
+station(7, (s, g) => {
+  const holder = new THREE.Group(); g.add(holder);
+  const prism = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 1.1, 6), std(C.y, { flatShading: true, metalness: .25 })); prism.rotation.x = Math.PI / 2; holder.add(prism);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.55, 24, 16), std(C.brand)); head.position.set(0, .5, .75); holder.add(head);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(.95, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), std(C.brand)); body.position.set(0, -1.05, .7); body.scale.set(1, .8, .5); holder.add(body);
+  g.add(at(sprite(C.y, 22, DARK ? .3 : .16), 0, 0, -1.5));
+  const layers = [[4.2, C.y], [5.6, C.g], [7, C.b], [8.4, C.r]].map(([r, c], k) => { const m = hexRing(r, .09, c, DARK ? .9 : 1); m.position.z = -k * .7; m.rotation.z = Math.PI / 6; g.add(m); return m; });
+  const cols = 27, rows = 17, NT = cols * rows, tg = new THREE.CylinderGeometry(.9, .9, .3, 6); tg.rotateX(Math.PI / 2);
+  const tiles = new THREE.InstancedMesh(tg, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .5, metalness: .1 }), NT); tiles.position.z = -8; g.add(tiles);
+  const tp = [], base = C.bg.clone().lerp(C.soft, DARK ? .18 : .22), dummy = new THREE.Object3D(), tc = new THREE.Color();
+  for (let rr = 0; rr < rows; rr++) for (let cc = 0; cc < cols; cc++) { const x = (cc - (cols - 1) / 2) * 1.732 + (rr % 2) * .866, y = (rr - (rows - 1) / 2) * 1.5; tp.push([x, y, Math.hypot(x, y)]); }
+  s.update = (t) => {
+    holder.rotation.y = Math.sin(t * .6) * .5; holder.position.y = Math.sin(t * 1.1) * .2;
+    layers.forEach((m, k) => { m.rotation.z = Math.PI / 6 + t * (.12 + k * .05) * (k % 2 ? -1 : 1); m.scale.setScalar(1 + Math.sin(t * 1.5 - k * .6) * .025); });
+    for (let i = 0; i < NT; i++) {
+      const [x, y, d] = tp[i], w = .5 + .5 * Math.sin(d * .55 - t * 1.7), sc = Math.max(.15, 1 - d / 30);
+      dummy.position.set(x, y, Math.pow(w, 3) * 1.4); dummy.scale.set(sc, sc, sc); dummy.updateMatrix(); tiles.setMatrixAt(i, dummy.matrix);
+      tc.copy(base).lerp(C.y, Math.pow(w, 6) * .85); tiles.setColorAt(i, tc);
+    }
+    tiles.instanceMatrix.needsUpdate = true; tiles.instanceColor.needsUpdate = true;
+  };
+});
+
+/* 8 · PERCEPTION — the watching eye, the radar and three agent teams */
+station(8, (s, g) => {
+  const eye = new THREE.Group(); g.add(eye);
+  eye.add(new THREE.Mesh(new THREE.SphereGeometry(1.1, 32, 20), std(C.r, { emissiveIntensity: DARK ? .6 : .3 })));
+  const ig = new THREE.RingGeometry(1.45, 2.9, 72, 3), ic = [], ip = ig.attributes.position;
+  for (let i = 0; i < ip.count; i++) { const d = Math.hypot(ip.getX(i), ip.getY(i)), c = C.r.clone().lerp(C.y, (d - 1.45) / 1.45); ic.push(c.r, c.g, c.b); }
+  ig.setAttribute('color', new THREE.Float32BufferAttribute(ic, 3));
+  const iris = new THREE.Mesh(ig, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .92 })); eye.add(iris);
+  const spokes = new THREE.Group(); eye.add(spokes);
+  for (let k = 0; k < 24; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(.05, 1.2, .05), basic(k % 2 ? C.r : C.y, .8)); const a = k / 24 * Math.PI * 2; b.position.set(Math.cos(a) * 2.2, Math.sin(a) * 2.2, .05); b.rotation.z = a - Math.PI / 2; spokes.add(b); }
+  eye.add(new THREE.Mesh(new THREE.SphereGeometry(3.7, 28, 18), new THREE.MeshBasicMaterial({ color: C.r, wireframe: true, transparent: true, opacity: DARK ? .16 : .22 })));
+  g.add(at(sprite(C.r, 22, DARK ? .3 : .16), 0, 0, -2));
+  const radar = new THREE.Group(); radar.rotation.x = -1.2; radar.position.y = -3.6; g.add(radar);
+  const sector = new THREE.Mesh(new THREE.CircleGeometry(14, 48, 0, .9), basic(C.r, DARK ? .2 : .16)); sector.material.side = THREE.DoubleSide; radar.add(sector);
+  [4, 7, 10, 13.5].forEach(r => radar.add(ring(r, .035, C.r, DARK ? .4 : .5)));
+  const TEAMS = [C.r, C.b, C.g], PER = 150, sw = makePoints(PER * 3, 1.5), sd = [];
+  for (let i = 0; i < PER * 3; i++) { sd.push([rand(7), rand(.6, 1.4), rand(.6, 1.4), rand(.6, 1.4), rand(.6, 2)]); sw.setC(i, TEAMS[(i / PER) | 0]); }
+  g.add(sw);
+  const look = new THREE.Vector2();
+  s.update = (t) => {
+    look.x += (mouse.x * .5 - look.x) * .05; look.y += (mouse.y * .35 - look.y) * .05;
+    eye.rotation.set(look.y, look.x, 0); iris.rotation.z = t * .2; spokes.rotation.z = -t * .35;
+    sector.rotation.z = -t * 1.1;
+    for (let k = 0; k < 3; k++) {
+      const a = t * .3 + k * 2.094, cx = Math.cos(a) * 7.5, cy = Math.sin(a * 1.3) * 2.2, cz = Math.sin(a) * 4.5;
+      for (let i = 0; i < PER; i++) {
+        const q = sd[k * PER + i], r = q[4];
+        sw.setP(k * PER + i, cx + Math.sin(t * q[1] + q[0]) * r, cy + Math.cos(t * q[2] + q[0] * 1.3) * r, cz + Math.sin(t * q[3] + q[0] * .7) * r);
+      }
+    }
+    sw.dirty();
+  };
+});
+
+/* 1 · THREE PILLARS — Human Ambition, Intelligence and Trust on one foundation */
+station(1, (s, g) => {
+  g.scale.setScalar(.9);
+  const temple = new THREE.Group(); temple.position.y = -.4; g.add(temple);
+  temple.add(at(new THREE.Mesh(new THREE.CylinderGeometry(9.5, 10.2, .8, 6), std(C.y, { emissiveIntensity: DARK ? .22 : .08 })), 0, -4.4, 0));
+  temple.add(at(new THREE.Mesh(new THREE.BoxGeometry(17, .5, 4.4), std(C.y, { emissiveIntensity: DARK ? .3 : .12 })), 0, -3.75, 0));
+  const padRing = hexRing(11, .06, C.y, DARK ? .55 : .7); padRing.rotation.x = Math.PI / 2; padRing.position.y = -4.4; temple.add(padRing);
+  const PC = [C.g, C.b, C.r], cols = [], halos = [];
+  PC.forEach((c, k) => {
+    const x = (k - 1) * 5.2, grp = new THREE.Group(); grp.position.set(x, -3.5, 0); temple.add(grp);
+    grp.add(at(new THREE.Mesh(new THREE.BoxGeometry(2.7, .4, 2.7), std(c)), 0, .2, 0));
+    grp.add(at(new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.2, 7.6, 20), std(c, { roughness: .25 })), 0, 4.2, 0));
+    for (let f = 0; f < 3; f++) { const b = hexRing(1.22 - f * .05, .05, c, .9); b.rotation.x = Math.PI / 2; b.position.y = 1.4 + f * 2.6; grp.add(b); }
+    grp.add(at(new THREE.Mesh(new THREE.BoxGeometry(2.9, .5, 2.9), std(c)), 0, 8.25, 0));
+    grp.add(at(sprite(c, 10, DARK ? .32 : .18), 0, 4.2, 0));
+    const h = ring(1.9, .045, c, .8); h.rotation.x = Math.PI / 2; temple.add(h); halos.push([h, x, k]);
+    cols.push(grp);
+  });
+  const roof = new THREE.Group(); temple.add(roof);
+  roof.add(at(new THREE.Mesh(new THREE.BoxGeometry(15.5, .6, 3.2), std(C.brand, { emissiveIntensity: DARK ? .35 : .15 })), 0, 5.3, 0));
+  const tri = new THREE.Shape(); tri.moveTo(-7.75, 0); tri.lineTo(7.75, 0); tri.lineTo(0, 2.3); tri.closePath();
+  const pg = new THREE.ExtrudeGeometry(tri, { depth: 2.8, bevelEnabled: false }); pg.translate(0, 5.6, -1.4);
+  roof.add(new THREE.Mesh(pg, std(C.brand, { emissiveIntensity: DARK ? .25 : .1 })));
+  [[C.r, -.32, .32], [C.g, .32, .32], [C.b, -.32, -.32], [C.y, .32, -.32]].forEach(([c, x, y]) => roof.add(at(new THREE.Mesh(new THREE.BoxGeometry(.56, .56, .12), basic(c)), x, 6.45 + y, 1.46)));
+  const NP = 420, pts = makePoints(NP, 1.3), pd = [];
+  for (let i = 0; i < NP; i++) { const k = i % 3; pd.push([(k - 1) * 5.2 + rand(-2, 2), rand(-1.8, 1.8), Math.random(), rand(.06, .16)]); pts.setC(i, Math.random() < .85 ? PC[k] : C.y); }
+  temple.add(pts);
+  let t0 = -1;
+  s.arrive = (d) => { t0 = T + d; };
+  s.update = (t) => {
+    cols.forEach((grp, k) => { const p = t0 < 0 ? 1 : clamp((t - t0 - k * .2) / 1.1, 0, 1); grp.scale.y = Math.max(.001, easeOutBack(p)); });
+    const rp = t0 < 0 ? 1 : clamp((t - t0 - .85) / .9, 0, 1);
+    roof.position.y = (1 - easeOutBack(rp)) * 9; roof.visible = rp > 0;
+    for (const [h, x, k] of halos) { const f = (t * .35 + k / 3) % 1; h.position.set(x, -3.2 + f * 9, 0); h.scale.setScalar(1 + f * .5); h.material.opacity = (1 - f) * .85; }
+    for (let i = 0; i < NP; i++) { const q = pd[i]; pts.setP(i, q[0], -3.6 + ((q[2] + t * q[3]) % 1) * 12, q[1]); }
+    pts.dirty();
+    temple.rotation.y = Math.sin(t * .3) * .35 - .18;
+  };
+});
+
+/* 9 · PRIORITIES — business priorities wired to the announcements they share */
+station(9, (s, g) => {
+  g.scale.setScalar(.85);
+  const STO = window.STORY || [], CV = ((STO.find(c => c.id === 'conversations') || {}).convos) || [];
+  const CM = { red: C.r, green: C.g, blue: C.b, yellow: C.y, brand: C.brand }, chapCol = (id) => CM[(STO.find(c => c.id === id) || {}).color] || C.brand;
+  const net = new THREE.Group(); g.add(net);
+  const oc = CV.map(cv => cv.g === 'Transform' ? C.g : C.b);
+  const op = CV.map((cv, k) => { const a = Math.PI / 2 - k / CV.length * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * 9.5, Math.sin(a) * 6, 0); });
+  const orbGeo = new THREE.SphereGeometry(.78, 28, 18), orbs = op.map((p, k) => {
+    const m = at(new THREE.Mesh(orbGeo, std(oc[k], { emissiveIntensity: DARK ? .45 : .2 })), p.x, p.y, p.z); net.add(m);
+    const halo = ring(1.25, .05, oc[k], .8); m.add(halo); m.userData.halo = halo;
+    return m;
+  });
+  const uniq = new Map();
+  CV.forEach((cv, k) => cv.items.forEach(([n, ch]) => { if (!uniq.has(n)) uniq.set(n, { n, ch, conv: [] }); uniq.get(n).conv.push(k); }));
+  const nodes = [...uniq.values()].sort((a, b) => b.conv.length - a.conv.length);
+  nodes.forEach((nd, k) => {
+    const c = nd.conv.length, r = 1.2 + (CV.length - c) * .72, a = k * 2.39996 + .4;
+    nd.p = new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r * .66, rand(-1.4, 1.4)); nd.c = chapCol(nd.ch);
+  });
+  const nm = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 18, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3, metalness: .1 }), nodes.length);
+  const dm = new THREE.Object3D();
+  nodes.forEach((nd, k) => { dm.position.copy(nd.p); dm.scale.setScalar(.2 + nd.conv.length * .055); dm.updateMatrix(); nm.setMatrixAt(k, dm.matrix); nm.setColorAt(k, nd.c); });
+  net.add(nm);
+  const edges = []; nodes.forEach(nd => nd.conv.forEach(k => edges.push([k, nd])));
+  const ep = new Float32Array(edges.length * 6), ec = new Float32Array(edges.length * 6);
+  edges.forEach(([k, nd], i) => { op[k].toArray(ep, i * 6); nd.p.toArray(ep, i * 6 + 3); oc[k].toArray(ec, i * 6); nd.c.toArray(ec, i * 6 + 3); });
+  const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.BufferAttribute(ep, 3)); eg.setAttribute('color', new THREE.BufferAttribute(ec, 3));
+  net.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: DARK ? .22 : .32 })));
+  const hp = new Float32Array(edges.length * 6), hgeo = new THREE.BufferGeometry(); hgeo.setAttribute('position', new THREE.BufferAttribute(hp, 3));
+  const hl = new THREE.LineSegments(hgeo, new THREE.LineBasicMaterial({ color: C.g, transparent: true, opacity: .9 })); hl.frustumCulled = false; net.add(hl);
+  let sel = 0, selEdges = [];
+  const select = (k) => {
+    sel = clamp(k | 0, 0, Math.max(0, CV.length - 1)); selEdges = [];
+    edges.forEach((e, i) => { if (e[0] === sel) selEdges.push(i); });
+    selEdges.forEach((ei, j) => { hp.set(ep.subarray(ei * 6, ei * 6 + 6), j * 6); });
+    hgeo.setDrawRange(0, selEdges.length * 2); hgeo.attributes.position.needsUpdate = true;
+    hl.material.color.copy(oc[sel] || C.g);
+  };
+  select(0);
+  addEventListener('story:conv', (e) => select(e.detail.index));
+  const ell = new THREE.EllipseCurve(0, 0, 11.2, 7.4, 0, Math.PI * 2).getSpacedPoints(160), elc = [];
+  ell.forEach((p, i) => { const c = C.g.clone().lerp(C.b, .5 - .5 * Math.cos(i / 160 * Math.PI * 2)); elc.push(c.r, c.g, c.b); });
+  const elg = new THREE.BufferGeometry().setFromPoints(ell); elg.setAttribute('color', new THREE.Float32BufferAttribute(elc, 3));
+  const outer = new THREE.Line(elg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .7 })); net.add(outer);
+  net.add(at(sprite(C.brand, 20, DARK ? .28 : .16), 0, 0, -2));
+  const P = 110, pulse = makePoints(P, 1.6), pq = [];
+  for (let i = 0; i < P; i++) pq.push({ e: (Math.random() * edges.length) | 0, p: Math.random(), sp: rand(.35, .8), dir: Math.random() < .5 });
+  net.add(pulse);
+  const tv3 = new THREE.Vector3();
+  let t0 = -1;
+  s.arrive = (d) => { t0 = T + d; };
+  s.update = (t, dt) => {
+    const k = t0 < 0 ? 1 : clamp((t - t0) / 1.3, 0, 1);
+    net.scale.setScalar(Math.max(.05, easeOutBack(k)));
+    net.rotation.y = Math.sin(t * .25) * .32; net.rotation.x = Math.sin(t * .19) * .1;
+    for (let i = 0; i < P; i++) {
+      const q = pq[i]; q.p += dt * q.sp;
+      if (q.p >= 1) { q.p = 0; q.e = (selEdges.length && Math.random() < .55) ? pick(selEdges) : (Math.random() * edges.length) | 0; q.dir = Math.random() < .5; }
+      const [ok, nd] = edges[q.e], u = q.dir ? q.p : 1 - q.p;
+      tv3.lerpVectors(op[ok], nd.p, u); pulse.setP(i, tv3.x, tv3.y, tv3.z); pulse.setC(i, q.dir ? nd.c : oc[ok]);
+    }
+    pulse.dirty(); pulse.geometry.attributes.aColor.needsUpdate = true;
+    orbs.forEach((m, j) => {
+      const on = j === sel, target = on ? 1.45 + Math.sin(t * 3) * .08 : 1;
+      m.scale.setScalar(m.scale.x + (target - m.scale.x) * .12);
+      m.userData.halo.rotation.set(t * .8 + j, t * .6, 0); m.userData.halo.material.opacity = on ? .95 : .35;
+    });
+    outer.rotation.z = t * .04;
+  };
+});
+
+/* 10 · ACTIVATE — a rising helix of milestones from launch pad to goal */
+station(10, (s, g) => {
+  g.scale.setScalar(.85);
+  class Helix extends THREE.Curve {
+    getPoint(u, tgt = new THREE.Vector3()) { const a = u * Math.PI * 2 * 2.25, r = 5.5 * (1 - u * .55); return tgt.set(Math.cos(a) * r, -7 + u * 14, Math.sin(a) * r); }
+  }
+  const hc = new Helix(), SEG = 400, RAD = 8, IPS = RAD * 6;
+  const tg = new THREE.TubeGeometry(hc, SEG, .24, RAD, false), vc = [], tc3 = new THREE.Color();
+  for (let i = 0; i < tg.attributes.position.count; i++) {
+    const u = Math.floor(i / (RAD + 1)) / SEG, f = u * 3, a = Math.min(2, f | 0);
+    tc3.copy(MS4[a]).lerp(MS4[a + 1], f - a); vc.push(tc3.r, tc3.g, tc3.b);
+  }
+  tg.setAttribute('color', new THREE.Float32BufferAttribute(vc, 3));
+  const tube = new THREE.Mesh(tg, new THREE.MeshBasicMaterial({ vertexColors: true })); g.add(tube);
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(hc, 200, .1, 6, false), basic(C.soft, DARK ? .14 : .2)));
+  g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.6, .5, 6), std(C.brand, { emissiveIntensity: DARK ? .3 : .12 })), 0, -7.6, 0));
+  const pr = hexRing(7.4, .06, C.brand, .6); pr.rotation.x = Math.PI / 2; pr.position.y = -7.4; g.add(pr);
+  const shock = ring(1, .05, C.y, .8); shock.rotation.x = Math.PI / 2; shock.position.y = -7.2; g.add(shock);
+  const MU = [...Array(7)].map((_, k) => (k + .5) / 7), ms = MU.map((u, k) => {
+    const c = MS4[k % 4], m = new THREE.Group(), p = hc.getPoint(u); m.position.copy(p); m.lookAt(0, p.y, 0);
+    m.add(hexRing(.95, .1, c)); m.add(new THREE.Mesh(new THREE.SphereGeometry(.34, 16, 12), std(c, { emissiveIntensity: DARK ? .6 : .3 }))); m.add(sprite(c, 4.5, DARK ? .45 : .25));
+    m.scale.setScalar(.001); g.add(m); return m;
+  });
+  const goal = at(new THREE.Mesh(new THREE.OctahedronGeometry(1.15, 0), std(C.y, { emissiveIntensity: DARK ? .55 : .25, roughness: .2 })), 0, 8.6, 0); g.add(goal);
+  const gGlow = at(sprite(C.y, 11, DARK ? .45 : .25), 0, 8.6, 0); g.add(gGlow);
+  const TR = 60, trail = makePoints(TR, 2.1), head = sprite(0xffffff, 3.2, .9);
+  for (let i = 0; i < TR; i++) trail.setC(i, i < 6 ? new THREE.Color(1, 1, 1) : C.y);
+  g.add(trail); g.add(head);
+  const NA = 260, amb = makePoints(NA, 1.1), ad = [];
+  for (let i = 0; i < NA; i++) { const a = rand(Math.PI * 2), r = rand(2, 9); ad.push([Math.cos(a) * r, Math.sin(a) * r, Math.random(), rand(.04, .1)]); amb.setC(i, pick(MS4)); }
+  g.add(amb);
+  const tv3 = new THREE.Vector3();
+  let t0 = -1;
+  s.arrive = (d) => { t0 = T + d; };
+  s.update = (t) => {
+    const prog = t0 < 0 ? 1 : clamp((t - t0) / 3.2, 0, 1), pe = easeInOutCubic(prog);
+    tg.setDrawRange(0, Math.max(1, Math.round(pe * SEG)) * IPS);
+    ms.forEach((m, k) => { const q = clamp((pe - MU[k]) * 9, 0, 1); m.scale.setScalar(Math.max(.001, easeOutBack(q))); m.rotation.z = t * .6 + k; });
+    const gq = clamp((pe - .96) * 25, 0, 1);
+    goal.scale.setScalar(Math.max(.001, easeOutBack(gq))); goal.rotation.set(t * .5, t * .9, 0); gGlow.material.opacity = gq * ((DARK ? .45 : .25) + Math.sin(t * 2.2) * .08);
+    const cu = prog < 1 ? pe : (t * .09) % 1;
+    for (let i = 0; i < TR; i++) { hc.getPoint(Math.max(0, cu - i * .0035), tv3); trail.setP(i, tv3.x, tv3.y, tv3.z); }
+    trail.dirty(); hc.getPoint(cu, tv3); head.position.copy(tv3);
+    const sf = (t * .45) % 1; shock.scale.setScalar(1 + sf * 8); shock.material.opacity = (1 - sf) * .85;
+    for (let i = 0; i < NA; i++) { const q = ad[i]; amb.setP(i, q[0], -7 + ((q[2] + t * q[3]) % 1) * 16, q[1]); }
+    amb.dirty();
+    g.rotation.y = t * .15;
+  };
+});
+
+/* ---------- Global: starfield + the storyline particle stream ---------- */
+const STARS = 7500, stars = makePoints(STARS, 2.4, DARK ? .85 : .75), white = new THREE.Color(1, 1, 1);
+for (let i = 0; i < STARS; i++) { stars.setP(i, rand(-260, 260), rand(-140, 140), rand(-900, 140)); stars.setC(i, Math.random() < .8 ? (DARK ? white : C.soft) : pick(MS4)); }
+stars.dirty(); scene.add(stars);
+const curve = new THREE.CatmullRomCurve3(POS.map(p => p.clone().add(new THREE.Vector3(0, -7, 0))), false, 'catmullrom', .5);
+const SAMP = 1600, samp = curve.getSpacedPoints(SAMP);
+scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(samp), new THREE.LineBasicMaterial({ color: C.soft, transparent: true, opacity: DARK ? .25 : .35 })));
+const SC = [C.brand, C.brand, C.b, C.y, C.g, C.r, C.b, C.y, C.r, C.g, C.y], NS = 3000, flow = makePoints(NS, 1.6, DARK ? .95 : .9), fd = [], tcol = new THREE.Color();
+for (let i = 0; i < NS; i++) fd.push([Math.random(), rand(-1.4, 1.4), rand(-1.4, 1.4), rand(-1.4, 1.4), rand(.004, .011)]);
+scene.add(flow);
+function updateFlow(t) {
+  const ca = flow.geometry.attributes.aColor;
+  for (let i = 0; i < NS; i++) {
+    const q = fd[i], u = (q[0] + t * q[4]) % 1, f = u * SAMP, j = f | 0, fr = f - j, a = samp[j], b = samp[Math.min(SAMP, j + 1)];
+    flow.setP(i, a.x + (b.x - a.x) * fr + q[1], a.y + (b.y - a.y) * fr + q[2] + Math.sin(t * 1.5 + q[0] * 50) * .3, a.z + (b.z - a.z) * fr + q[3]);
+    const si = u * (SC.length - 1), s0 = si | 0; tcol.copy(SC[s0]).lerp(SC[Math.min(SC.length - 1, s0 + 1)], si - s0); flow.setC(i, tcol);
+  }
+  flow.dirty(); ca.needsUpdate = true;
+}
+
+/* ---------- Camera choreography ---------- */
+const mouse = { x: 0, y: 0 };
+addEventListener('pointermove', (e) => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+const camLook = new THREE.Vector3(0, 0, -40), baseP = new THREE.Vector3(), baseL = new THREE.Vector3(), tv = new THREE.Vector3(), tl = new THREE.Vector3();
+let curIdx = clamp(window.__storyIndex | 0, 0, S.length - 1);
+const fP = [], fL = [];
+function frameFor(i) {
+  const narrow = innerWidth <= 900, dist = narrow ? 30 : 24;
+  const halfW = Math.tan(THREE.MathUtils.degToRad(24)) * dist * cam.aspect;
+  const offX = narrow ? 0 : halfW * .52;
+  baseL.copy(POS[i]).sub(tv.set(offX, narrow ? -4 : 0, 0));
+  baseP.copy(baseL).add(tv.set(0, 1.6, dist));
+}
+function frames() { for (let i = 0; i < S.length; i++) { frameFor(i); fP[i] = baseP.clone(); fL[i] = baseL.clone(); } }
+frames();
+/* The UI publishes window.__cam = { F, orb }: F is a float station index driven by scroll, orb[i] is the pinned-title progress used to orbit station i. */
+const ORB = REDUCED ? 0 : .6, sOrb = S.map(() => 0), sm = { x: 0, y: 0 };
+const P0 = new THREE.Vector3(), P1 = new THREE.Vector3(), wantP = new THREE.Vector3(), wantL = new THREE.Vector3();
+const START_P = new THREE.Vector3(0, 20, 90), START_L = new THREE.Vector3(0, 0, -40);
+function orbit(v, c, a) { const x = v.x - c.x, z = v.z - c.z, cs = Math.cos(a), sn = Math.sin(a); v.x = c.x + x * cs + z * sn; v.z = c.z - x * sn + z * cs; return v; }
+function camAt(F) {
+  const n = S.length - 1, i0 = clamp(Math.floor(F), 0, n), i1 = Math.min(n, i0 + 1), e = easeInOutCubic(clamp(F - i0, 0, 1));
+  orbit(P0.copy(fP[i0]), fL[i0], (sOrb[i0] - .5) * ORB);
+  orbit(P1.copy(fP[i1]), fL[i1], (sOrb[i1] - .5) * ORB);
+  wantP.lerpVectors(P0, P1, e); wantL.lerpVectors(fL[i0], fL[i1], e);
+  const arc = Math.sin(Math.PI * e);
+  wantP.y += arc * 14; wantP.z += arc * 10;
+  return arc;
+}
+addEventListener('story:goto', (e) => {
+  const i = clamp(e.detail.index | 0, 0, S.length - 1);
+  if (i !== curIdx) { curIdx = i; if (S[i].arrive) S[i].arrive(.5); }
+});
+addEventListener('resize', () => {
+  renderer.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
+  frames();
+});
+
+/* ---------- Loop ---------- */
+let last = performance.now(), sF = -1, boot = REDUCED ? 1 : 0;
+if (S[curIdx].arrive) S[curIdx].arrive(REDUCED ? .3 : 1.9);
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((now - last) / 1000, .05); last = now; T += dt; uTime.value = T;
+  const ck = window.__cam || { F: curIdx, orb: [] };
+  const tF = REDUCED ? curIdx : clamp(+ck.F || 0, 0, S.length - 1);
+  const k = 1 - Math.pow(.003, dt);
+  sF = sF < 0 ? tF : sF + (tF - sF) * k;
+  for (let i = 0; i < S.length; i++) sOrb[i] += (((ck.orb && ck.orb[i]) || 0) - sOrb[i]) * k;
+  let arc = camAt(sF);
+  const m = REDUCED ? 0 : 1, km = 1 - Math.pow(.02, dt);
+  sm.x += (mouse.x - sm.x) * km; sm.y += (mouse.y - sm.y) * km;
+  wantP.x += sm.x * 1.6 * m; wantP.y += (-sm.y * 1.0 + Math.sin(T * .5) * .35) * m;
+  wantL.x += sm.x * .6 * m; wantL.y += -sm.y * .4 * m;
+  if (boot < 1) {
+    boot = Math.min(1, boot + dt / 3.2);
+    const e = easeInOutCubic(boot), b = Math.sin(Math.PI * e);
+    wantP.lerpVectors(START_P, wantP, e); wantP.y += b * 14;
+    wantL.lerpVectors(START_L, wantL, e);
+    arc = Math.max(arc, b);
+  }
+  cam.position.copy(wantP); camLook.copy(wantL);
+  const fovT = 48 + (REDUCED ? 0 : 12 * arc);
+  if (Math.abs(cam.fov - fovT) > .01) { cam.fov = fovT; cam.updateProjectionMatrix(); }
+  cam.lookAt(camLook);
+  for (const s of S) { const near = s.pos.distanceTo(cam.position) < 170; s.g.visible = near; if (near) s.update(T, dt); }
+  updateFlow(T);
+  renderer.render(scene, cam);
+}
+requestAnimationFrame((n) => { last = n; loop(n); });
+document.body.classList.remove('no-gl');
+} catch (err) {
+  console.warn('3D storyboard disabled:', err);
+  document.body.classList.add('no-gl');
+}
+</script>
+</body>
+</html>
